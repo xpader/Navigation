@@ -29,14 +29,16 @@ class Navi {
 		//Load system config
 		self::$config = include $configFile;
 
-		include __DIR__.'/Core/Common.php';
-		include __DIR__.'/Core/Interface.php';
-
-		self::$router = new Router(self::$config['apps'], self::$config['routeMapManager']);
-		self::$activeApps = self::$router->getActiveApps();
-
 		//Register autoloads
 		spl_autoload_register('\Navigation\Navi::loadClass');
+
+		//Include common files
+		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Common.php';
+		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Interface.php';
+
+		//Initialize router
+		self::$router = new Router(self::$config['apps'], self::$config['routeMapManager']);
+		self::$activeApps = self::$router->getActiveApps();
 	}
 
 	/**
@@ -61,7 +63,7 @@ class Navi {
 				nv404(1); //Class not found
 			}
 
-			$action = isset($request['params'][0]) ? $request['params'][0] : 'index';
+			$action = !empty($request['params'][0]) ? $request['params'][0] : 'index';
 			$instance = new $request['className'];
 
 			if (is_callable(array($instance, $action))) {
@@ -106,18 +108,28 @@ class Navi {
 		$arr = explode('\\', $name);
 		$ns = array_shift($arr);
 
-		if (isset($spaces[$ns])) {
-			$filename = $spaces[$ns].DIRECTORY_SEPARATOR.join(DIRECTORY_SEPARATOR, $arr).'.php';
+		//Must have a namespace
+		if (count($arr) == 0) {
+			return false;
+		}
 
-			if (is_file($filename)) {
-				include $filename;
-				return class_exists($name, false);
-			}
+		if ($ns == 'Navigation') {
+			$filename = NAVI_SYSTEM_PATH . DIRECTORY_SEPARATOR . join(DIRECTORY_SEPARATOR, $arr) . '.php';
+		} elseif (isset($spaces[$ns])) {
+			$filename = $spaces[$ns] . DIRECTORY_SEPARATOR . join(DIRECTORY_SEPARATOR, $arr) . '.php';
+		}
+
+		if (isset($filename) && is_file($filename)) {
+			include $filename;
+			return class_exists($name, false);
 		}
 
 		return false;
 	}
 
+	/**
+	 * Fix path_info for $_SERVER in Workerman
+	 */
 	private function fixPathInfo() {
 		if ($_SERVER['REQUEST_URI'] == '') return;
 		$q = strpos($_SERVER['REQUEST_URI'], '?');
