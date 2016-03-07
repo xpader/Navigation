@@ -28,4 +28,10 @@ class Test extends \Controller {
 		print_r($m);
 	}
 
+	public function config() {
+		echo 'Hello World in Test<br />'.date('Y-m-d H:i:s')."<br />";
+
+		echo $this->router->getCurrentApp();
+	}
+
 }

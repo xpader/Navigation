@@ -2,6 +2,7 @@
 namespace Navigation;
 
 use Navigation\Core\Router;
+use Navigation\Core\Config;
 
 define('NAVI_SYSTEM_PATH', __DIR__);
 
@@ -27,7 +28,7 @@ class Navi {
 		}
 
 		//Load system config
-		self::$config = include $configFile;
+		$config = include $configFile;
 
 		//Register autoloads
 		spl_autoload_register('\Navigation\Navi::loadClass');
@@ -37,8 +38,14 @@ class Navi {
 		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Interface.php';
 
 		//Initialize router
-		self::$router = new Router(self::$config['apps'], self::$config['routeMapManager']);
+		self::$router = new Router($config['apps'], $config['routeMapManager']);
 		self::$activeApps = self::$router->getActiveApps();
+
+		self::$config = new Config();
+	}
+
+	public static function getObject($name) {
+		return isset(self::$$name) ? self::$$name : false;
 	}
 
 	/**

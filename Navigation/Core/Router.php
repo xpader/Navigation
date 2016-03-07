@@ -7,6 +7,7 @@ class Router {
 	private $routeMap = array();
 	private $hostMap = array();
 	private $activeApps = array();
+	private $currentApp;
 
 	/**
 	 * @param array $apps
@@ -74,6 +75,8 @@ class Router {
 		$className = '\\'.$app['namespace'].'\\Controller'.str_replace(DIRECTORY_SEPARATOR, '\\', substr($controller, $pl));
 		//$controller .= '.php';
 
+		$this->currentApp = $index;
+
 		return array(
 			'app' => $index,
 			'className' => $className,
@@ -129,6 +132,10 @@ class Router {
 
 	public function getApp($index) {
 		return isset($this->activeApps[$index]) ? $this->activeApps[$index] : null;
+	}
+
+	public function getCurrentApp() {
+		return $this->currentApp;
 	}
 
 }
