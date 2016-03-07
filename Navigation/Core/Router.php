@@ -72,11 +72,10 @@ class Router {
 		}
 
 		$className = '\\'.$app['namespace'].'\\Controller'.str_replace(DIRECTORY_SEPARATOR, '\\', substr($controller, $pl));
-		$controller .= '.php';
-
-		require_once $controller;
+		//$controller .= '.php';
 
 		return array(
+			'app' => $index,
 			'className' => $className,
 			'controller' => $controller,
 			'params' => $params
@@ -122,6 +121,14 @@ class Router {
 		}
 
 		$this->hostMap = $map;
+	}
+
+	public function getActiveApps() {
+		return $this->activeApps;
+	}
+
+	public function getApp($index) {
+		return isset($this->activeApps[$index]) ? $this->activeApps[$index] : null;
 	}
 
 }
