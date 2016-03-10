@@ -34,4 +34,18 @@ class Test extends \Controller {
 		echo $this->router->getCurrentApp();
 	}
 
+	public function loader() {
+		$this->config->loadConfig();
+
+		$this->load->import(['mod/test', 'library/jovi']);
+
+		$this->load->showMaps();
+
+		echo $this->test->iam();
+
+		$this->jovi->bon();
+
+		echo 'Script is still running.';
+	}
+
 }

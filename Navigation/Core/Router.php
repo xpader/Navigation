@@ -135,7 +135,7 @@ class Router {
 	}
 
 	public function getCurrentApp() {
-		return $this->currentApp;
+		return $this->getApp($this->currentApp);
 	}
 
 }

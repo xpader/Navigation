@@ -42,6 +42,9 @@ class Navi {
 		self::$activeApps = self::$router->getActiveApps();
 
 		self::$config = new Config();
+
+		//Register error handler
+		set_error_handler('_nvErrorHandler');
 	}
 
 	public static function getObject($name) {
@@ -137,7 +140,7 @@ class Navi {
 	/**
 	 * Fix path_info for $_SERVER in Workerman
 	 */
-	private function fixPathInfo() {
+	private static function fixPathInfo() {
 		if ($_SERVER['REQUEST_URI'] == '') return;
 		$q = strpos($_SERVER['REQUEST_URI'], '?');
 		$_SERVER['PATH_INFO'] = $q !== false ? substr($_SERVER['REQUEST_URI'], 0, $q) : $_SERVER['REQUEST_URI'];

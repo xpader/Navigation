@@ -29,5 +29,73 @@ function nv404($status=3) {
 	nvExit('404 Page Not Found.');
 }
 
+function &getInstance() {
+	return \Controller::getInstance();
+}
+
+function import($name) {
+	$NV =& getInstance();
+	$NV->load->import($name);
+}
+
+function nvCallError($message) {
+	$trace = debug_backtrace();
+	$trace = $trace[1];
+	trigger_error("__NAVI_ERROR__\n$message\n{$trace['file']}\n{$trace['line']}", E_USER_ERROR);
+}
+
+/**
+ * Navi error handler
+ *
+ * @param int $errno
+ * @param string $message
+ * @param string $file
+ * @param int $line
+ * @return bool|void
+ */
+function _nvErrorHandler($errno, $message, $file, $line) {
+	if ($errno == E_STRICT) {
+		return;
+	}
+
+	//Is should display in error_reporting setting
+	if (($errno & error_reporting()) == $errno) {
+		static $levels = array(
+			E_ERROR				=>	'Error',
+			E_WARNING			=>	'Warning',
+			E_PARSE				=>	'Parsing Error',
+			E_NOTICE			=>	'Notice',
+			E_CORE_ERROR		=>	'Core Error',
+			E_CORE_WARNING		=>	'Core Warning',
+			E_COMPILE_ERROR		=>	'Compile Error',
+			E_COMPILE_WARNING	=>	'Compile Warning',
+			E_USER_ERROR		=>	'User Error',
+			E_USER_WARNING		=>	'User Warning',
+			E_USER_NOTICE		=>	'User Notice',
+			E_STRICT			=>	'Runtime Notice'
+		);
+
+		//Return error to system process
+		if (!isset($levels[$errno])) {
+			return false;
+		}
+
+		//Navi get error specil reporting
+		if (($errno == E_USER_NOTICE || $errno == E_USER_ERROR || $errno == E_USER_WARNING)
+			&& substr($message, 0, 14) == '__NAVI_ERROR__') {
+
+			$errno == E_USER_NOTICE && $errno = E_NOTICE;
+
+			list(, $message, $file, $line) = explode("\n", $message);
+		}
+
+		echo "<br />\n<b>{$levels[$errno]}</b>:  $message in <b>$file</b> on line <b>$line</b><br />";
+
+		$errno == E_USER_ERROR && nvExit();
+	}
+
+
+}
+
 class ExitException extends Exception {}
 
