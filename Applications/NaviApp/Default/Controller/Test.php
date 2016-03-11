@@ -39,11 +39,17 @@ class Test extends \Controller {
 
 		$this->load->import(['mod/test', 'library/jovi']);
 
-		$this->load->showMaps();
+		//$this->load->showMaps();
 
 		echo $this->test->iam();
 
+		echo "<br />\n";
+
 		$this->jovi->bon();
+
+		$this->jovi->cc();
+
+		//echo $struct;
 
 		echo 'Script is still running.';
 	}

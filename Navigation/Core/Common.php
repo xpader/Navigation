@@ -44,6 +44,11 @@ function nvCallError($message) {
 	trigger_error("__NAVI_ERROR__\n$message\n{$trace['file']}\n{$trace['line']}", E_USER_ERROR);
 }
 
+function nvLog($flag, $message) {
+
+
+}
+
 /**
  * Navi error handler
  *
@@ -95,6 +100,18 @@ function _nvErrorHandler($errno, $message, $file, $line) {
 	}
 
 
+}
+
+/*
+function _nvExceptionHandler() {
+	echo "Navi Exception Handler:";
+	print_r(func_get_args());
+}
+*/
+
+function _nvShutdownHandler() {
+	call_user_func_array('_nvErrorHandler', error_get_last());
+	exit(1);
 }
 
 class ExitException extends Exception {}
