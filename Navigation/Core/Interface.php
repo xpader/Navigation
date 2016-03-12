@@ -1,6 +1,7 @@
 <?php
 
 use Navigation\Navi;
+use Navigation\Core\Config;
 use Navigation\Core\Loader;
 
 /**
@@ -14,9 +15,14 @@ abstract class Controller {
 	private static $instance;
 
 	/**
-	 * @var \Navigation\Core\Config
+	 * @var Config
 	 */
 	public $config;
+
+	/**
+	 * @var Navigation\Core\Router
+	 */
+	public $router;
 
 	/**
 	 * @var Loader
@@ -26,9 +32,11 @@ abstract class Controller {
 	public function __construct() {
 		self::$instance =& $this;
 
-		$this->config = Navi::getObject('config');
+		$this->router = Navi::getObject('router');
+		$appIndex = $this->router->getCurrentAppIndex();
 
-		$this->load = new Loader(array('config', 'load'));
+		$this->config = new Config($appIndex);
+		$this->load = new Loader();
 	}
 
 	/**
@@ -49,6 +57,7 @@ abstract class Controller {
 	public function __get($name) {
 		if (isset($this->$name)) {
 			if (substr($name, 0, 1) != '_') {
+				echo "Call __get\n";
 				return $this->$name;
 			} else {
 				//property is not callable error

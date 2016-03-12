@@ -6,10 +6,12 @@ class Loader {
 
 	private $objectMaps = array();
 
-	public function __construct(array $initObjectsName) {
+	public function __construct() {
+		/*
 		foreach ($initObjectsName as $key) {
 			$this->registerObject($key, 0); //0 means Core Object
 		}
+		*/
 	}
 
 	public function import($name, $rename='') {

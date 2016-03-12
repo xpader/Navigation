@@ -134,6 +134,10 @@ class Router {
 		return isset($this->activeApps[$index]) ? $this->activeApps[$index] : null;
 	}
 
+	public function getCurrentAppIndex() {
+		return $this->currentApp;
+	}
+
 	public function getCurrentApp() {
 		return $this->getApp($this->currentApp);
 	}

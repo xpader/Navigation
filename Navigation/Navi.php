@@ -8,7 +8,8 @@ define('NAVI_SYSTEM_PATH', __DIR__);
 
 class Navi {
 
-	private static $config;
+	const VERSION = '0.1.0-alpha';
+
 	private static $activeApps;
 
 	/**
@@ -30,18 +31,20 @@ class Navi {
 		//Load system config
 		$config = include $configFile;
 
+		//Load common helper
+		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Common.php';
+
+		//Load application interface
+		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Interface.php';
+
 		//Register autoloads
 		spl_autoload_register('\Navigation\Navi::loadClass');
-
-		//Include common files
-		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Common.php';
-		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Interface.php';
 
 		//Initialize router
 		self::$router = new Router($config['apps'], $config['routeMapManager']);
 		self::$activeApps = self::$router->getActiveApps();
 
-		self::$config = new Config();
+		Config::initialize($config['defaultEnvrionment'], self::$activeApps);
 
 		//Register error handler
 		set_error_handler('_nvErrorHandler');
@@ -49,6 +52,10 @@ class Navi {
 		register_shutdown_function('_nvShutdownHandler');
 	}
 
+	/**
+	 * @param $name
+	 * @return Router
+	 */
 	public static function getObject($name) {
 		return isset(self::$$name) ? self::$$name : false;
 	}

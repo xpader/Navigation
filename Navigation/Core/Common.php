@@ -94,7 +94,7 @@ function _nvErrorHandler($errno, $message, $file, $line) {
 			list(, $message, $file, $line) = explode("\n", $message);
 		}
 
-		echo "<br />\n<b>{$levels[$errno]}</b>:  $message in <b>$file</b> on line <b>$line</b><br />";
+		echo "<br /><!--NVERROR-->\n<b>{$levels[$errno]}</b>:  $message in <b>$file</b> on line <b>$line</b><br />";
 
 		$errno == E_USER_ERROR && nvExit();
 	}

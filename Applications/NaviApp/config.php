@@ -17,6 +17,8 @@ return array(
 	 */
 	'routeMapManager' => 'none',
 
+	'defaultEnvrionment' => 'development',
+
 	/**
 	 * Apps Config
 	 */
@@ -26,14 +28,16 @@ return array(
 			'enabled' => true,
 			'namespace' => 'Wide',
 			'path' => __DIR__.DIRECTORY_SEPARATOR.'Default',
-			'serverName' => '*'
+			'serverName' => '*',
+			'envrionment' => 'development'
 		),
 		'test' => array(
 			'name' => 'Test Navi App',
 			'enabled' => false,
 			'namespace' => 'NaviTest',
 			'path' => __DIR__.DIRECTORY_SEPARATOR.'Test',
-			'serverName' => ['localhost', 't.pp.cn']
+			'serverName' => ['localhost', 't.pp.cn'],
+			'envrionment' => 'development'
 		)
 	)
 );

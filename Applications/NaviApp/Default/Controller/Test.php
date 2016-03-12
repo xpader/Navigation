@@ -29,9 +29,14 @@ class Test extends \Controller {
 	}
 
 	public function config() {
-		echo 'Hello World in Test<br />'.date('Y-m-d H:i:s')."<br />";
+		//$apps = $this->config->loadConfig();
 
-		echo $this->router->getCurrentApp();
+		var_dump($this->config->get('servlet'));
+
+	}
+
+	public function updateConfig() {
+		$this->config->set('servlet', "just a test\nupdate in ".date('Y-m-d H:i:s'));
 	}
 
 	public function loader() {
