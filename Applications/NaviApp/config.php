@@ -1,6 +1,8 @@
 <?php
 //Navigation Framework system config
 
+define('NAVI_APPS_PATH', __DIR__);
+
 return array(
 	/**
 	 * Set how to load route map for request
