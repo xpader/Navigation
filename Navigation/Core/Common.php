@@ -38,10 +38,10 @@ function import($name) {
 	$NV->load->import($name);
 }
 
-function nvCallError($message) {
-	$trace = debug_backtrace();
+function nvCallError($message, $errorType=E_USER_ERROR) {
+	$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 	$trace = $trace[1];
-	trigger_error("__NAVI_ERROR__\n$message\n{$trace['file']}\n{$trace['line']}", E_USER_ERROR);
+	trigger_error("__NAVI_ERROR__\n$message\n{$trace['file']}\n{$trace['line']}", $errorType);
 }
 
 function nvLog($flag, $message) {

@@ -149,8 +149,8 @@ class Config {
 	 * @param string $config If config load to separate space, must set this value to separate name
 	 * @return mixed
 	 */
-	public function get($key, $config='') {
-		if ($config != '' && !isset($this->configs[$config])) {
+	public function get($key, $config='config') {
+		if (!isset($this->configs[$config])) {
 			$this->load($config, true);
 		}
 
@@ -167,9 +167,7 @@ class Config {
 	 * @param mixed $value
 	 * @param string $config If set to separate space, this value must set to separate name
 	 */
-	public function set($key, $value, $config='') {
-		$config == '' && $config = 'config';
-
+	public function set($key, $value, $config='config') {
 		if (!isset($this->configs[$config])) {
 			$this->configs[$config] = array();
 		}

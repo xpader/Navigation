@@ -72,8 +72,8 @@ class Loader {
 				return [0, 'core'];
 			} else {
 				switch (substr($row, 0, 1)) {
-					case 1: return [1, substr($row, 1)]; break;
-					case 2: return [2, substr($row, 1)]; break;
+					case 1: return [1, substr($row, 1)]; break; //library
+					case 2: return [2, substr($row, 1)]; break; //other class
 					default:
 						return $row;
 				}
