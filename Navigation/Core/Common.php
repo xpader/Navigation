@@ -2,12 +2,16 @@
 
 use \Workerman\Protocols\Http;
 
-function nvExit($status='') {
-	if ($status) {
+function nvExit($status=null) {
+	$statusCode = null;
+
+	if (is_int($status)) {
+		$statusCode = $status;
+	} elseif ($status) {
 		echo $status;
 	}
 
-	throw new ExitException();
+	throw new ExitException('', $statusCode);
 }
 
 function nvHeader($string, $replace=true, $http_response_code=null) {
@@ -114,5 +118,7 @@ function _nvShutdownHandler() {
 	exit(1);
 }
 
-class ExitException extends Exception {}
+class ExitException extends Exception {
+
+}
 

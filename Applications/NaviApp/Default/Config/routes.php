@@ -1,7 +1,7 @@
 <?php
 
 return array(
-	'static/' => 'STATIC '.realpath(__DIR__.'/../../../../static/'),
+	'static/.*' => 'test/staticout',
 	'overload(/.+)?' => 'test/routes/$1',
 	'input' => 'test/input'
 );

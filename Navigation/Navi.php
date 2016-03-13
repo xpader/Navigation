@@ -76,6 +76,8 @@ class Navi {
 	public static function request($conn, $data) {
 		self::fixPathInfo();
 
+		$statusCode = 0;
+
 		ob_start();
 
 		try {
@@ -108,15 +110,22 @@ class Navi {
 		} catch (\ExitException $e) {
 			//$trace = $e->getTrace();
 			//$exitWay = $trace[1];
+
+			//RAW_OUTPUT_BREAK = 5
+			$code = $e->getCode();
+			$code == 5 && $statusCode = $code;
 		}
 
 		//make sure input object been destory
 		self::$input = null;
 
-		$buffer = ob_get_contents();
-		ob_end_clean();
-
-		$conn->send($buffer);
+		if ($statusCode === 0) {
+			$buffer = ob_get_contents();
+			ob_end_clean();
+			$conn->send($buffer);
+		} else {
+			ob_end_flush();
+		}
 	}
 
 	/**
