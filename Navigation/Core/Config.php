@@ -131,15 +131,15 @@ class Config {
 	public function load($name, $separate=false) {
 		$config = self::sload($name, $this->appIndex);
 
-		if ($config !== null) {
-			if ($separate) {
-				self::$appConfigMaps[$this->appIndex][$name] = $config;
-			} else {
-				self::$appConfigMaps[$this->appIndex][$name] += $config;
-			}
+		if ($config === null) {
+			nvExit("Can not found config: $name.\n");
 		}
 
-		nvExit("Can not found config: $name.\n");
+		if ($separate) {
+			self::$appConfigMaps[$this->appIndex][$name] = $config;
+		} else {
+			self::$appConfigMaps[$this->appIndex][$name] += $config;
+		}
 	}
 
 	/**
@@ -150,10 +150,8 @@ class Config {
 	 * @return mixed
 	 */
 	public function get($key, $config='') {
-		$config == '' && $config = 'config';
-
-		if (!isset($this->configs[$config])) {
-			$this->load($config);
+		if ($config != '' && !isset($this->configs[$config])) {
+			$this->load($config, true);
 		}
 
 		return isset($this->configs[$config][$key]) ?

@@ -58,7 +58,11 @@ class Router {
 			}
 		}
 
-		return $realUri;
+		return array(
+			'source' => $sourceUri,
+			'real' => $realUri,
+			'array' => $realUri ? explode('/', $realUri) : array()
+		);
 	}
 
 	/**
@@ -86,7 +90,6 @@ class Router {
 
 		//Export the request uri
 		$uri = $this->exportURI();
-		$URI = $uri ? explode('/', $uri) : array();
 
 		//Find controller
 		$path = $app['path'].DIRECTORY_SEPARATOR.'Controller';
@@ -94,13 +97,13 @@ class Router {
 		$controller = '';
 		$params = array();
 
-		foreach ($URI as $i => $seg) {
+		foreach ($uri['array'] as $i => $seg) {
 			$seg = ucfirst($seg);
 			$path .= DIRECTORY_SEPARATOR.$seg;
 
 			if (is_file($path.'.php')) {
 				$controller = $path;
-				$params = array_slice($URI, $i+1);
+				$params = array_slice($uri['array'], $i+1);
 				break;
 			}
 		}
@@ -116,12 +119,12 @@ class Router {
 		$className = '\\'.$app['namespace'].'\\Controller'.str_replace(DIRECTORY_SEPARATOR, '\\', substr($controller, $pl));
 		//$controller .= '.php';
 
-		return array(
-			'app' => $index,
-			'className' => $className,
-			'controller' => $controller,
-			'params' => $params
-		);
+		$uri['app'] = $index;
+		$uri['className'] = $className;
+		$uri['controller'] = $controller;
+		$uri['params'] = $params;
+
+		return $uri;
 	}
 
 	public function fetchAction($object, $params) {

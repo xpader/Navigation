@@ -53,8 +53,6 @@ class Navi {
 		//Initialize router
 		self::$router = new Router(self::$activeApps, $config['routeMapManager']);
 
-		self::$input = new Input();
-
 		//Register error handler
 		set_error_handler('_nvErrorHandler');
 		//set_exception_handler('_nvExceptionHandler');
@@ -81,33 +79,39 @@ class Navi {
 		ob_start();
 
 		try {
-			$request = self::$router->parse();
+			$uri = self::$router->parse();
 
-			if (!$request) {
+			if (!$uri) {
 				nv404(0); //Controller file not found
 			}
 
-			if (!class_exists($request['className'])) {
+			if (!class_exists($uri['className'])) {
 				nv404(1); //Class not found
 			}
 
-			$action = !empty($request['params'][0]) ? $request['params'][0] : 'index';
-			$instance = new $request['className'];
+			//Instance input before controller
+			self::$input = new Input($uri, $conn);
+
+			$instance = new $uri['className'];
+			$action = !empty($uri['params'][0]) ? $uri['params'][0] : 'index';
 
 			if (is_callable(array($instance, $action))) {
-				unset($request['params'][0]);
+				unset($uri['params'][0]);
 			} elseif (is_callable(array($instance, '_redirect'))) {
 				$action = '_redirect';
 			} else {
 				nv404(2); //Action not found
 			}
 
-			call_user_func_array(array($instance, $action), $request['params']);
+			call_user_func_array(array($instance, $action), $uri['params']);
 
 		} catch (\ExitException $e) {
 			//$trace = $e->getTrace();
 			//$exitWay = $trace[1];
 		}
+
+		//make sure input object been destory
+		self::$input = null;
 
 		$buffer = ob_get_contents();
 		ob_end_clean();
