@@ -28,7 +28,37 @@ class Router {
 				if (isset($this->hostMap[$name])) continue;
 				$this->hostMap[$name] = $i;
 			}
+
+			$this->routeMap[$i] = Config::item('routes', $i);
 		}
+	}
+
+	/**
+	 * Explain and translate the true uri
+	 *
+	 * @return mixed|string
+	 */
+	protected function exportURI() {
+		//export the request uri
+		$sourceUri = isset($_SERVER['PATH_INFO']) ? trim($_SERVER['PATH_INFO'], '/') : '';
+
+		//translate routes
+		$realUri = $sourceUri;
+		$routes = $this->routeMap[$this->currentApp];
+
+		if ($routes) {
+			foreach ($routes as $exp => $route) {
+				$exp = '#^'.$exp.'$#';
+				if (preg_match($exp, $sourceUri)) {
+					$realUri = preg_replace($exp, $route, $sourceUri);
+					break;
+				} elseif ($sourceUri == $exp) {
+					break;
+				}
+			}
+		}
+
+		return $realUri;
 	}
 
 	/**
@@ -52,9 +82,10 @@ class Router {
 		}
 
 		$app = $this->activeApps[$index];
+		$this->currentApp = $index;
 
 		//Export the request uri
-		$uri = isset($_SERVER['PATH_INFO']) ? ltrim($_SERVER['PATH_INFO'], '/') : '';
+		$uri = $this->exportURI();
 		$URI = $uri ? explode('/', $uri) : array();
 
 		//Find controller
@@ -84,8 +115,6 @@ class Router {
 
 		$className = '\\'.$app['namespace'].'\\Controller'.str_replace(DIRECTORY_SEPARATOR, '\\', substr($controller, $pl));
 		//$controller .= '.php';
-
-		$this->currentApp = $index;
 
 		return array(
 			'app' => $index,

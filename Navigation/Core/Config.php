@@ -57,7 +57,8 @@ class Config {
 
 			//Register configs
 			self::$appConfigMaps[$index] = array(
-				'config' => self::sload('config', $index)
+				'config' => self::sload('config', $index),
+				'routes' => self::sload('routes', $index)
 			);
 
 			++$enabledCount;
@@ -103,6 +104,20 @@ class Config {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Get an exists config
+	 *
+	 * To call this method must after static initialized.
+	 *
+	 * @param string $config Config name
+	 * @param string $appIndex
+	 * @return array|null
+	 */
+	public static function item($config, $appIndex) {
+		return isset(self::$appConfigMaps[$appIndex][$config]) ?
+			self::$appConfigMaps[$appIndex][$config]: null;
 	}
 
 	/**

@@ -71,4 +71,8 @@ class Test extends \Controller {
 		echo $this->input->userAgent();
 	}
 
+	public function routes($p='') {
+
+	}
+
 }
