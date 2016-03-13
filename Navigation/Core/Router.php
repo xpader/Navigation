@@ -10,15 +10,25 @@ class Router {
 	private $currentApp;
 
 	/**
-	 * @param array $apps
+	 * @param array $activeApps
 	 * @param string $mapManager
 	 */
-	public function __construct($apps, $mapManager) {
-		if (count($apps) == 0 || !is_array($apps)) {
+	public function __construct($activeApps, $mapManager) {
+		if (count($activeApps) == 0 || !is_array($activeApps)) {
 			exit("No apps in config!\n");
 		}
 
-		$this->fetchApps($apps);
+		$this->activeApps = $activeApps;
+
+		//fetch server name to host maps
+		foreach ($activeApps as $i => $app) {
+			foreach ($app['serverName'] as $name) {
+				$name = strtolower($name);
+				//ignore same server name
+				if (isset($this->hostMap[$name])) continue;
+				$this->hostMap[$name] = $i;
+			}
+		}
 	}
 
 	/**
@@ -89,57 +99,8 @@ class Router {
 
 	}
 
-	/**
-	 * Fetch apps config to initialize
-	 *
-	 * @param array $applications
-	 */
-	private function fetchApps($applications) {
-		$enabledCount = 0;
-
-		$map = array();
-
-		foreach ($applications as $i => $app) {
-			if (!$app['enabled']) continue;
-
-			//Bind server name
-			if (!is_array($app['serverName'])) {
-				$app['serverName'] = array($app['serverName']);
-			}
-
-			foreach ($app['serverName'] as $name) {
-				$name = strtolower($name);
-				if (isset($map[$name])) continue;
-				$map[$name] = $i;
-			}
-
-			//Register App
-			$this->activeApps[$i] = $app;
-
-			++$enabledCount;
-		}
-
-		if ($enabledCount == 0) {
-			exit("No enabled app was active!\n");
-		}
-
-		$this->hostMap = $map;
-	}
-
-	public function getActiveApps() {
-		return $this->activeApps;
-	}
-
-	public function getApp($index) {
-		return isset($this->activeApps[$index]) ? $this->activeApps[$index] : null;
-	}
-
 	public function getCurrentAppIndex() {
 		return $this->currentApp;
-	}
-
-	public function getCurrentApp() {
-		return $this->getApp($this->currentApp);
 	}
 
 }

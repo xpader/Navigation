@@ -25,6 +25,11 @@ abstract class Controller {
 	public $router;
 
 	/**
+	 * @var \Navigation\Core\Input
+	 */
+	public $input;
+
+	/**
 	 * @var Loader
 	 */
 	public $load;
@@ -37,6 +42,7 @@ abstract class Controller {
 
 		$this->config = new Config($appIndex);
 		$this->load = new Loader();
+		$this->input = Navi::getObject('input');
 	}
 
 	/**

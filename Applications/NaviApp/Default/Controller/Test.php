@@ -25,7 +25,9 @@ class Test extends \Controller {
 	public function ivkmodel() {
 		$m = new \Wide\Model\Test();
 
+		echo '<pre>';
 		print_r($m);
+		echo '</pre>';
 	}
 
 	public function config() {
@@ -40,8 +42,6 @@ class Test extends \Controller {
 	}
 
 	public function loader() {
-		$this->config->loadConfig();
-
 		$this->load->import(['mod/test', 'library/jovi']);
 
 		//$this->load->showMaps();
@@ -57,6 +57,18 @@ class Test extends \Controller {
 		//echo $struct;
 
 		echo 'Script is still running.';
+	}
+
+	public function printserver() {
+		echo '<pre>';
+		print_r($_SERVER);
+		echo '</pre>';
+	}
+
+	public function input() {
+		echo $this->input->ip();
+		echo '<br />';
+		echo $this->input->userAgent();
 	}
 
 }

@@ -3,6 +3,7 @@ namespace Navigation;
 
 use Navigation\Core\Router;
 use Navigation\Core\Config;
+use Navigation\Core\Input;
 
 define('NAVI_SYSTEM_PATH', __DIR__);
 
@@ -18,6 +19,11 @@ class Navi {
 	private static $router;
 
 	/**
+	 * @var Input
+	 */
+	private static $input;
+
+	/**
 	 * Initialize framework and bootstrap
 	 *
 	 * @param string $configFile System config file of Navi Framework
@@ -28,23 +34,26 @@ class Navi {
 			exit('No found config file: '.$configFile."\n");
 		}
 
-		//Load system config
-		$config = include $configFile;
-
 		//Load common helper
 		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Common.php';
 
 		//Load application interface
 		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Interface.php';
 
+		//Load system config
+		$config = include $configFile;
+
 		//Register autoloads
 		spl_autoload_register('\Navigation\Navi::loadClass');
 
-		//Initialize router
-		self::$router = new Router($config['apps'], $config['routeMapManager']);
-		self::$activeApps = self::$router->getActiveApps();
+		//Initialize config
+		Config::initialize($config);
+		self::$activeApps = Config::getActiveApps();
 
-		Config::initialize($config['defaultEnvrionment'], self::$activeApps);
+		//Initialize router
+		self::$router = new Router(self::$activeApps, $config['routeMapManager']);
+
+		self::$input = new Input();
 
 		//Register error handler
 		set_error_handler('_nvErrorHandler');

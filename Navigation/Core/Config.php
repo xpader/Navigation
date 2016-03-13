@@ -5,7 +5,8 @@ namespace Navigation\Core;
 class Config {
 
 	private static $initialized = false;
-	private static $appMaps = array();
+	private static $activeApps = array();
+	private static $appConfigMaps = array();
 
 	private $configs;
 	private $appIndex;
@@ -17,32 +18,62 @@ class Config {
 	 */
 	public function __construct($appIndex) {
 		$this->appIndex = $appIndex;
-		$this->configs =& self::$appMaps[$appIndex]['configs'];
+		$this->configs =& self::$appConfigMaps[$appIndex];
 	}
 
 	/**
 	 * Preset the envrionment of the app
 	 *
-	 * @param string $defaultEnv Default envrionment set
-	 * @param array $activeApps
+	 * @param array $globalConfig
 	 */
-	public static function initialize($defaultEnv, $activeApps) {
-		if (self::$initialized) {
-			return;
-		}
+	public static function initialize($globalConfig) {
+		if (self::$initialized) return;
 
-		foreach ($activeApps as $index => $app) {
-			self::$appMaps[$index] = array(
-				'envrionment' => empty($app['envrionment']) ? $defaultEnv : $app['envrionment'],
-				'path' => $app['path'],
-				'configs' => array()
+		self::fetchActiveApps($globalConfig['apps'], $globalConfig['defaultEnvrionment']);
+		self::$initialized = true;
+	}
+
+	/**
+	 * Fetch apps config to initialize
+	 *
+	 * @param array $applications
+	 * @param string $defaultEnv
+	 */
+	private static function fetchActiveApps($applications, $defaultEnv) {
+		$enabledCount = 0;
+
+		foreach ($applications as $index => $app) {
+			if (!$app['enabled']) continue;
+
+			//Bind server name
+			if (!is_array($app['serverName'])) {
+				$app['serverName'] = array($app['serverName']);
+			}
+
+			$app['envrionment'] = empty($app['envrionment']) ? $defaultEnv : $app['envrionment'];
+
+			//Register App
+			self::$activeApps[$index] = $app;
+
+			//Register configs
+			self::$appConfigMaps[$index] = array(
+				'config' => self::sload('config', $index)
 			);
 
-			//Must after $appMaps has be build
-			self::$appMaps[$index]['configs']['config'] = self::sload('config', $index);
+			++$enabledCount;
 		}
 
-		self::$initialized = true;
+		if ($enabledCount == 0) {
+			exit("No enabled apps was active!\n");
+		}
+	}
+
+	public static function getActiveApps() {
+		return self::$activeApps;
+	}
+
+	public static function getApp($index) {
+		return isset(self::$activeApps[$index]) ? self::$activeApps[$index] : null;
 	}
 
 	/**
@@ -57,7 +88,7 @@ class Config {
 	 * @return mixed|null
 	 */
 	protected static function sload($name, $app) {
-		$appConf = self::$appMaps[$app];
+		$appConf = self::$activeApps[$app];
 		$confDir = $appConf['path'].DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR;
 
 		$fetch = array(
@@ -87,9 +118,9 @@ class Config {
 
 		if ($config !== null) {
 			if ($separate) {
-				self::$appMaps[$this->appIndex]['configs'][$name] = $config;
+				self::$appConfigMaps[$this->appIndex][$name] = $config;
 			} else {
-				self::$appMaps[$this->appIndex]['configs'][$name] += $config;
+				self::$appConfigMaps[$this->appIndex][$name] += $config;
 			}
 		}
 
@@ -131,6 +162,10 @@ class Config {
 		}
 
 		$this->configs[$config][$key] = $value;
+	}
+
+	public function getCurrentApp() {
+		return self::getApp($this->appIndex);
 	}
 
 }
