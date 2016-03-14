@@ -56,7 +56,7 @@ class Navi {
 		//Register error handler
 		set_error_handler('_nvErrorHandler');
 		//set_exception_handler('_nvExceptionHandler');
-		register_shutdown_function('_nvShutdownHandler');
+		//register_shutdown_function('_nvShutdownHandler');
 	}
 
 	/**

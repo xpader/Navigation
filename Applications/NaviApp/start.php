@@ -8,7 +8,8 @@ require_once __DIR__ . '/../../Workerman/Autoloader.php';
 Autoloader::setRootPath(__DIR__);
 
 $worker = new Worker('http://0.0.0.0:8001');
-$worker->count = 4;
+$worker->name = 'navi-app';
+$worker->count = 1;
 
 $worker->onWorkerStart = function($worker) {
 	Navi::bootstrap(__DIR__.'/config.php', $worker);
