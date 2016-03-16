@@ -7,7 +7,7 @@
  * hours: 2h
  * days: 15d
  */
-$image = '1d';
+$image = '2d';
 
 return array(
 	'jpg' => $image,

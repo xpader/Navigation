@@ -126,36 +126,40 @@ class Config {
 	 * This will re-read the config file
 	 *
 	 * @param string $name
-	 * @param bool $separate is config in a stand alone space, if true, you must call get use $config
+	 * @param bool $useSection Is config in a stand alone space, if true, you must call get use $config
+	 * @param bool $return Return config array
+	 * @return array|null
 	 */
-	public function load($name, $separate=false) {
+	public function load($name, $useSection=false, $return=false) {
 		$config = self::sload($name, $this->appIndex);
 
 		if ($config === null) {
 			nvExit("Can not found config: $name.\n");
 		}
 
-		if ($separate) {
+		if ($useSection) {
 			self::$appConfigMaps[$this->appIndex][$name] = $config;
 		} else {
 			self::$appConfigMaps[$this->appIndex][$name] += $config;
 		}
+
+		if ($return) return $config;
 	}
 
 	/**
 	 * Get config value
 	 *
 	 * @param string $key
-	 * @param string $config If config load to separate space, must set this value to separate name
+	 * @param string $section If config load to separate space, must set this value to separate name
 	 * @return mixed
 	 */
-	public function get($key, $config='config') {
-		if (!isset($this->configs[$config])) {
-			$this->load($config, true);
+	public function get($key, $section='config') {
+		if (!isset($this->configs[$section])) {
+			$this->load($section, true);
 		}
 
-		return isset($this->configs[$config][$key]) ?
-			$this->configs[$config][$key] : null;
+		return isset($this->configs[$section][$key]) ?
+			$this->configs[$section][$key] : null;
 	}
 
 	/**
@@ -165,14 +169,14 @@ class Config {
 	 *
 	 * @param string $key
 	 * @param mixed $value
-	 * @param string $config If set to separate space, this value must set to separate name
+	 * @param string $section If set to separate space, this value must set to separate name
 	 */
-	public function set($key, $value, $config='config') {
-		if (!isset($this->configs[$config])) {
-			$this->configs[$config] = array();
+	public function set($key, $value, $section='config') {
+		if (!isset($this->configs[$section])) {
+			$this->configs[$section] = array();
 		}
 
-		$this->configs[$config][$key] = $value;
+		$this->configs[$section][$key] = $value;
 	}
 
 	public function getCurrentApp() {

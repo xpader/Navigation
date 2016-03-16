@@ -7,6 +7,10 @@ use \Navigation\Navi;
 require_once __DIR__ . '/../../Workerman/Autoloader.php';
 Autoloader::setRootPath(__DIR__);
 
+if (!defined('RUN_DIR')) {
+	define('RUN_DIR', __DIR__ . '/../..');
+}
+
 $worker = new Worker('http://0.0.0.0:8001');
 $worker->name = 'navi-app';
 $worker->count = 1;

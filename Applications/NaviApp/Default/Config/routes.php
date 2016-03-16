@@ -1,7 +1,7 @@
 <?php
 
 return array(
-	'static/.*' => 'staticfile/index',
+	'(static/.*|favicon.ico)' => 'staticfile',
 	'overload(/.+)?' => 'test/routes/$1',
 	'input' => 'test/input'
 );
