@@ -8,13 +8,11 @@ ini_set('display_errors', 'on');
 use Workerman\Worker;
 
 // 检查扩展
-if(!extension_loaded('pcntl'))
-{
+if (!extension_loaded('pcntl')) {
     exit("Please install pcntl extension. See http://doc3.workerman.net/install/install.html\n");
 }
 
-if(!extension_loaded('posix'))
-{
+if (!extension_loaded('posix')) {
     exit("Please install posix extension. See http://doc3.workerman.net/install/install.html\n");
 }
 

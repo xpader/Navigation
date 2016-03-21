@@ -2,15 +2,9 @@
 
 namespace Wide\Controller;
 
-use \Workerman\Protocols\Http;
+use \Navigation\Database\Db;
 
-class PC extends \Controller {
-
-	private $bbb = 2;
-
-}
-
-class Test extends PC {
+class Test extends \Controller {
 
 	public function index() {
 		echo 'This is test controller.<br />';
@@ -92,6 +86,20 @@ class Test extends PC {
 
 	public function s() {
 		echo '<img src="http://127.0.0.1:8001/static/example.jpg?1" />';
+	}
+
+	public function db() {
+		$db = new Db();
+		$db->query('REPLACE INTO text SET id=9092,text='.$db->escapeStr(date('Y-m-d H:i:s').' '.rand(100, 999), true));
+
+		echo $db->lastId();
+
+		echo '<pre>';
+		print_r($db->queryRecords);
+		echo '</pre>';
+
+		echo $db->getClientVersion().'<br />';
+		echo $db->getServerVersion();
 	}
 
 }
