@@ -2,7 +2,8 @@
 
 namespace Wide\Controller;
 
-use \Navigation\Database\Db;
+use \Navigation\Database\DriverMysqli;
+use \Navigation\Database\DriverPdo;
 
 class Test extends \Controller {
 
@@ -85,21 +86,18 @@ class Test extends \Controller {
 	}
 
 	public function s() {
-		echo '<img src="http://127.0.0.1:8001/static/example.jpg?1" />';
+		echo '<img src="http://127.0.0.1:8001/static/example.jpg" />';
 	}
 
 	public function db() {
-		$db = new Db();
-		$db->query('REPLACE INTO text SET id=9092,text='.$db->escapeStr(date('Y-m-d H:i:s').' '.rand(100, 999), true));
+		$db = new DriverPdo();
+		$result = $db->query('SELECT * FROM text');
 
-		echo $db->lastId();
+		$row = $result->all();
 
-		echo '<pre>';
-		print_r($db->queryRecords);
-		echo '</pre>';
+		$result->free();
 
-		echo $db->getClientVersion().'<br />';
-		echo $db->getServerVersion();
+		print_r($row);
 	}
 
 }

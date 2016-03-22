@@ -13,13 +13,11 @@ namespace Navigation\Database;
 use \mysqli;
 use \mysqli_result;
 
-class AdapterMysqli extends AdapterInterface {
+class DriverMysqli extends Db {
 
-	public function __construct() {
-		$this->dbType = 'MySQL';
-	}
+	protected $driverName = 'mysqli';
 
-	public function connect($config) {
+	protected function realConnect($config) {
 		$port = null;
 
 		if (strpos($config['hostname'], ':') !== false) {
@@ -45,27 +43,31 @@ class AdapterMysqli extends AdapterInterface {
 		return true;
 	}
 
+	public function close() {
+		if ($this->link !== null) {
+			mysqli_close($this->link);
+			$this->link = null;
+		}
+	}
+
 	public function ping() {
 		return ($this->link instanceof mysqli) && mysqli_ping($this->link);
 	}
 
-	public function query($sql) {
+	public function execute($sql) {
 		return @mysqli_query($this->link, $sql);
-	}
-
-	/**
-	 * Fetch Row From DB Result
-	 *
-	 * @param mysqli_result $result
-	 * @param int $type
-	 * @return array
-	 */
-	public function fetch($result, $type=MYSQLI_ASSOC) {
-		return mysqli_fetch_array($result, $type);
 	}
 
 	public function lastId() {
 		return mysqli_insert_id($this->link);
+	}
+
+	public function affectedRows() {
+		return mysqli_affected_rows($this->link);
+	}
+
+	public function escapeStr() {
+
 	}
 
 	/**
@@ -123,4 +125,20 @@ class AdapterMysqli extends AdapterInterface {
 
 }
 
-class AdapterMysqliResult implements QueryResult {}
+class MysqliResult extends ResultInterface {
+
+	public function fetch($type=DB_ASSOC) {
+		return mysqli_fetch_array($this->result, $type);
+	}
+
+	public function all($type=DB_ASSOC) {
+		return mysqli_fetch_all($this->result, $type);
+	}
+
+	public function rowCount() { return mysqli_num_rows($this->result); }
+
+	public function columnCount() { return mysqli_num_fields($this->result); }
+
+	public function free() { mysqli_free_result($this->result); }
+
+}

@@ -34,11 +34,16 @@ class Navi {
 			exit('No found config file: '.$configFile."\n");
 		}
 
+		$coreDir = NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR;
+
 		//Load common helper
-		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Common.php';
+		include $coreDir.'common.php';
 
 		//Load application interface
-		include NAVI_SYSTEM_PATH.DIRECTORY_SEPARATOR.'Core'.DIRECTORY_SEPARATOR.'Interface.php';
+		include $coreDir.'Interface.php';
+
+		//Load constant define
+		include $coreDir.'constant.php';
 
 		//Load system config
 		$config = include $configFile;
