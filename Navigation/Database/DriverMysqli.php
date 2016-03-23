@@ -13,11 +13,9 @@ namespace Navigation\Database;
 use \mysqli;
 use \mysqli_result;
 
-class DriverMysqli extends Db {
+class DriverMysqli extends DriverInterface {
 
-	protected $driverName = 'mysqli';
-
-	protected function realConnect($config) {
+	public function connect($config) {
 		$port = null;
 
 		if (strpos($config['hostname'], ':') !== false) {
@@ -54,11 +52,11 @@ class DriverMysqli extends Db {
 		return ($this->link instanceof mysqli) && mysqli_ping($this->link);
 	}
 
-	public function execute($sql) {
+	public function query($sql) {
 		return @mysqli_query($this->link, $sql);
 	}
 
-	public function lastId() {
+	public function insertId() {
 		return mysqli_insert_id($this->link);
 	}
 
@@ -66,29 +64,10 @@ class DriverMysqli extends Db {
 		return mysqli_affected_rows($this->link);
 	}
 
-	public function escapeStr() {
-
-	}
-
-	/**
-	 * Begin Transaction
-	 *
-	 * @return bool
-	 */
 	public function begin() { return PHP_VERSION_ID >= 50500 ? mysqli_begin_transaction($this->link) : $this->query('BEGIN'); }
 
-	/**
-	 * Commit Transaction
-	 *
-	 * @return bool
-	 */
 	public function commit() { return mysqli_commit($this->link); }
 
-	/**
-	 * Rollback Transaction
-	 *
-	 * @return bool
-	 */
 	public function rollback() { return mysqli_rollback($this->link); }
 
 	public function getServerVersion() { return mysqli_get_server_info($this->link); }
@@ -109,16 +88,10 @@ class DriverMysqli extends Db {
 		return @mysqli_query($this->link, $set);
 	}
 
-	/**
-	 * @return int
-	 */
 	public function errorCode() {
 		return $this->link ? mysqli_errno($this->link) : mysqli_connect_errno();
 	}
 
-	/**
-	 * @return string
-	 */
 	public function errorMessage() {
 		return $this->link ? mysqli_error($this->link) : mysqli_connect_error();
 	}

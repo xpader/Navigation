@@ -2,8 +2,7 @@
 
 namespace Wide\Controller;
 
-use \Navigation\Database\DriverMysqli;
-use \Navigation\Database\DriverPdo;
+use \Navigation\Database\Db;
 
 class Test extends \Controller {
 
@@ -90,7 +89,7 @@ class Test extends \Controller {
 	}
 
 	public function db() {
-		$db = new DriverPdo();
+		$db = new Db();
 		$result = $db->query('SELECT * FROM text');
 
 		$row = $result->all();
