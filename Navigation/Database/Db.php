@@ -70,9 +70,8 @@ class Db {
 	 * Initialize config
 	 *
 	 * @param string|array $conf
-	 * @param bool $useDsn Unsupport yet
 	 */
-	public function __construct($conf='default', $useDsn=false) {
+	public function __construct($conf='default') {
 		if (!is_array($conf)) {
 			$NV =& getInstance();
 			$config = $NV->config->get($conf, 'database');
@@ -275,7 +274,30 @@ class Util {
 		nvExit("<h4>Database Error</h4><p><b>Message:</b> {$message} [$errno]<br /><b>Error:</b> $error<br />$sql</p>");
 	}
 
-	public static function parseDsn() {}
+	public static function parseDsn($dsn) {
+		$arr = array();
+
+		$split = strpos($dsn, ':');
+		$arr['type'] = substr($dsn, 0, $split);
+
+		$pstr = explode(';', substr($dsn, $split+1));
+
+		foreach ($pstr as $row) {
+			$split = strpos($row, '=');
+
+			if ($split !== false) {
+				$k = substr($row, 0, $split);
+				$v = substr($row, $split+1);
+			} else {
+				$k = 'file';
+				$v = $row;
+			}
+
+			$arr[trim($k)] = trim($v);
+		}
+
+		return $arr;
+	}
 
 	public static function buildDsn() {}
 

@@ -22,6 +22,11 @@ class DriverMysqli extends DriverInterface {
 	public function connect($config) {
 		$port = null;
 
+		//Use dsn
+		if (!empty($config['dsn'])) {
+			$config += Util::parseDsn($config['dsn']);
+		}
+
 		if (strpos($config['host'], ':') !== false) {
 			list($host, $port) = explode(':', $config['host']);
 		} else {

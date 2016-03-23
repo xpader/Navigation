@@ -47,6 +47,7 @@ class DriverPdo extends DriverInterface {
 
 				$args = array($dsn, $config['username'], $config['password']);
 
+				//PDO options
 				$options = array();
 
 				if ($config['pconnect']) $options[PDO::ATTR_PERSISTENT] = true;
