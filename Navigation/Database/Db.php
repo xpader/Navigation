@@ -64,7 +64,7 @@ class Db {
 	 *
 	 * @var array
 	 */
-	protected $allowDrivers = array('mysql', 'mysqli', 'pdo');
+	protected $allowDrivers = array('mysql', 'mysqli', 'pdo', 'sqlite', 'sqlite3');
 
 	/**
 	 * Initialize config
