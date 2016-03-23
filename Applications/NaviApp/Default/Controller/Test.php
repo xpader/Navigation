@@ -99,4 +99,23 @@ class Test extends \Controller {
 		print_r($row);
 	}
 
+	public function sqlite() {
+		$db = new Db('local');
+
+		/*
+		$date = date('Y-m-d H:i:s ').rand(1000, 9999);
+		$db->query("INSERT INTO text (text) VALUES('$date')");
+
+		$result = $db->query("SELECT * FROM text ORDER BY id DESC LIMIT 1");
+
+		$data = $result->fetch();
+		*/
+
+		$result = $db->query("SELECT * FROM text ORDER BY id ASC");
+
+		$data = $result->all();
+
+		print_r($data);
+	}
+
 }

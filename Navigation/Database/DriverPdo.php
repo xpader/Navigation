@@ -6,163 +6,123 @@ use \PDO;
 use \PDOStatement;
 use \PDOException;
 
-class DriverPdo extends Db {
+/**
+ * PDO driver of database
+ *
+ * This is a driver adapter for database class
+ */
+class DriverPdo extends DriverInterface {
 
-	public $dbType = 'MySQL';
-	protected $driverName = 'pdo';
+	/**
+	 * @var PDOException
+	 */
+	protected $e;
 
-	protected function realConnect($config) {
+	/**
+	 * @var PDOStatement
+	 */
+	protected $sth;
 
-		$args = array();
-
+	public function connect($config) {
 		//firebird,mssql,mysql,oci,oci8,odbc,pgsql,sqlite
 		switch ($config['type']) {
 			case 'sqlite':
-				$dsn = "sqlite:{$config['filename']}";
+				$dsn = "sqlite:{$config['file']}";
 				$args = array($dsn);
+				$this->embedded = true;
 				break;
 
 			default:
-				$dsnp = $opt = array();
+				if (empty($config['dsn'])) {
+					$dsn = $config['type'].":host={$config['host']};dbname={$config['dbname']}";
 
-				$dsnp['host'] = $config['hostname'];
-				$dsnp['dbname'] = $config['database'];
 
-				if (isset($config['port'])) $dsnp['port'] = $config['port'];
-
-				if ($config['pconnect']) $opt[PDO::ATTR_PERSISTENT] = TRUE;
-
-				if (!empty($config['charset'])) {
-					$dsnp['charset'] = $config['charset'];
-					if ($config['dbdriver'] == 'mysql') {
-						$set = "SET NAMES '{$config['charset']}'";
-						empty($config['dbcollat']) || $set .= " COLLATE '{$config['dbcollat']}'";
-						$opt[PDO::MYSQL_ATTR_INIT_COMMAND] = $set;
+					if (!empty($config['port'])) {
+						$dsn .= ";port={$config['port']}";
 					}
+
+				} else {
+					$dsn = $config['dsn'];
 				}
 
-				$dsn = array();
-
-				foreach ($dsnp as $k => $v) {
-					$dsn[] = $k.'='.$v;
-				}
-
-				$dsn = $config['dbdriver'].':'.join(';',$dsn);
 				$args = array($dsn, $config['username'], $config['password']);
 
-				$opt && $args[3] = $opt;
+				$options = array();
+
+				if ($config['pconnect']) $options[PDO::ATTR_PERSISTENT] = true;
+
+				$options && $args[3] = $options;
 				break;
 		}
 
 		//Connect
 		try {
 			$class= new \ReflectionClass('PDO');
-			$this->pdo = $class->newInstanceArgs($args);
+			$this->link = $class->newInstanceArgs($args);
 		} catch (PDOException $e) {
-			$this->error('Failed to connect database', $e);
-		}
-
-		$this->config = $config;
-
-		$port = null;
-
-		if (strpos($config['hostname'], ':') !== false) {
-			list($host, $port) = explode(':', $config['hostname']);
-		} else {
-			$host = $config['hostname'];
-			if (isset($config['port'])) {
-				$port = $config['port'];
-			}
-		}
-
-		$config['pconnect'] && $host = 'p:'.$host;
-
-		$this->link = @mysqli_connect($host, $config['username'], $config['password'], $config['dbname'], $port);
-
-		if (!$this->link) {
+			$this->e = $e;
 			return false;
 		}
-
-		//Set chars
-		if (isset($config['charset']) && $config['charset'] != '') $this->setChars($config['charset'],$config['dbcollat']);
 
 		return true;
 	}
 
 	public function close() {
 		if ($this->link !== null) {
-			mysqli_close($this->link);
 			$this->link = null;
+			$this->sth = null;
 		}
 	}
 
 	public function ping() {
-		return ($this->link instanceof mysqli) && mysqli_ping($this->link);
+		return false;
 	}
 
-	public function execute($sql) {
-		return @mysqli_query($this->link, $sql);
+	public function setCharset($charset, $collation='') {
+		$set = "SET NAMES '$charset'";
+
+		if ($collation) {
+			$set .= " COLLATE '$collation'";
+		}
+
+		return $this->link->exec($set);
 	}
 
-	public function lastId() {
-		return mysqli_insert_id($this->link);
+	public function query($sql) {
+		return $this->sth = $this->link->query($sql);
+	}
+
+	public function insertId() {
+		return $this->link->lastInsertId();
 	}
 
 	public function affectedRows() {
-		return mysqli_affected_rows($this->link);
+		return $this->sth->rowCount();
 	}
 
-	/**
-	 * Begin Transaction
-	 *
-	 * @return bool
-	 */
-	public function begin() { return PHP_VERSION_ID >= 50500 ? mysqli_begin_transaction($this->link) : $this->query('BEGIN'); }
+	public function begin() { return $this->link->beginTransaction(); }
 
-	/**
-	 * Commit Transaction
-	 *
-	 * @return bool
-	 */
-	public function commit() { return mysqli_commit($this->link); }
+	public function commit() { return $this->link->commit(); }
 
-	/**
-	 * Rollback Transaction
-	 *
-	 * @return bool
-	 */
-	public function rollback() { return mysqli_rollback($this->link); }
+	public function rollback() { return $this->link->rollBack(); }
 
-	public function getServerVersion() { return mysqli_get_server_info($this->link); }
+	public function getServerVersion() { return $this->link->getAttribute(PDO::ATTR_SERVER_VERSION); }
 
-	public function getClientVersion() { return mysqli_get_client_info(); }
+	public function getClientVersion() { return $this->link->getAttribute(PDO::ATTR_CLIENT_VERSION); }
 
-	/**
-	 * ×Ö·û¼¯ÉèÖÃ
-	 *
-	 * @param string $charset
-	 * @param string $collation
-	 * @return mysqli_result
-	 */
-	public function setChars($charset, $collation='') {
-		$set = "SET NAMES '$charset'";
-		$collation != '' && $set .= " COLLATE '$collation'";
-
-		return @mysqli_query($this->link, $set);
-	}
-
-	/**
-	 * @return int
-	 */
 	public function errorCode() {
-		return $this->link ? mysqli_errno($this->link) : mysqli_connect_errno();
+		return $this->link ? $this->link->errorCode() : 0;
 	}
 
-	/**
-	 * @return string
-	 */
 	public function errorMessage() {
-		return $this->link ? mysqli_error($this->link) : mysqli_connect_error();
+		if ($this->e) {
+			return $this->e->getMessage();
+		} elseif ($this->link) {
+			$errorInfo = $this->link->errorInfo();
+			return $errorInfo[2];
+		}
+
+		return '';
 	}
 
 }
@@ -170,17 +130,21 @@ class DriverPdo extends Db {
 class PdoResult extends ResultInterface {
 
 	public function fetch($type=DB_ASSOC) {
-		return mysqli_fetch_array($this->result, $type);
+		return $this->result->fetch($type == DB_NUM ? PDO::FETCH_NUM : PDO::FETCH_ASSOC);
 	}
 
 	public function all($type=DB_ASSOC) {
-		return mysqli_fetch_all($this->result, $type);
+		return $this->result->fetchAll($type == DB_NUM ? PDO::FETCH_NUM : PDO::FETCH_ASSOC);
 	}
 
-	public function rowCount() { return mysqli_num_rows($this->result); }
+	public function column($columnNumber=0) {
+		return $this->result->fetchColumn($columnNumber);
+	}
 
-	public function columnCount() { return mysqli_num_fields($this->result); }
+	public function rowCount() { return $this->result->rowCount(); }
 
-	public function free() { mysqli_free_result($this->result); }
+	public function columnCount() { return $this->result->columnCount(); }
+
+	public function free() { $this->result = null;}
 
 }

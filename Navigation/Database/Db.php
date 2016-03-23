@@ -66,8 +66,6 @@ class Db {
 	 */
 	protected $allowDrivers = array('mysql', 'mysqli', 'pdo');
 
-	protected $query;
-
 	/**
 	 * Initialize config
 	 *
@@ -122,6 +120,12 @@ class Db {
 
 		//set result adapter name
 		$this->resultClass = '\\Navigation\\Database\\'.ucfirst($this->driverName).'Result';
+
+		//set charset if isset in config
+		if (!empty($conf['charset'])) {
+			$collate = empty($config['collate']) ? '' : $conf['collate'];
+			$this->driver->setCharset($conf['charset'], $collate);
+		}
 	}
 
 	/**
@@ -137,9 +141,9 @@ class Db {
 			$timeStart = microtime(true);
 		}
 
-		$this->query = $this->driver->query($sql);
+		$query = $this->driver->query($sql);
 
-		if (!$this->query) {
+		if (!$query) {
 			Util::error('Query error', $this->driver->errorCode(), $this->driver->errorMessage(), $sql);
 		}
 
@@ -153,7 +157,7 @@ class Db {
 			$this->queryRecords[] = array('sql' => $sql, 'used' => $queryTime);
 		}
 
-		return $resultMode ? new $this->resultClass($this->query) : $this->query;
+		return $resultMode ? new $this->resultClass($query) : $query;
 	}
 
 	/**

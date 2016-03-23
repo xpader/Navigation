@@ -11,8 +11,12 @@
 namespace Navigation\Database;
 
 use \mysqli;
-use \mysqli_result;
 
+/**
+ * Mysqli driver of MySQL database
+ *
+ * This is a driver adapter for database class
+ */
 class DriverMysqli extends DriverInterface {
 
 	public function connect($config) {
@@ -22,7 +26,8 @@ class DriverMysqli extends DriverInterface {
 			list($host, $port) = explode(':', $config['host']);
 		} else {
 			$host = $config['host'];
-			if (isset($config['port'])) {
+
+			if (!empty($config['port'])) {
 				$port = $config['port'];
 			}
 		}
@@ -31,14 +36,7 @@ class DriverMysqli extends DriverInterface {
 
 		$this->link = @mysqli_connect($host, $config['username'], $config['password'], $config['dbname'], $port);
 
-		if (!$this->link) {
-			return false;
-		}
-
-		//Set chars
-		if (isset($config['charset']) && $config['charset'] != '') $this->setChars($config['charset'],$config['collat']);
-
-		return true;
+		return (bool)$this->link;
 	}
 
 	public function close() {
@@ -50,6 +48,14 @@ class DriverMysqli extends DriverInterface {
 
 	public function ping() {
 		return ($this->link instanceof mysqli) && mysqli_ping($this->link);
+	}
+
+	public function setCharset($charset, $collation='') {
+		if ($collation) {
+			return @mysqli_query($this->link, "SET NAMES '$charset' COLLATE '$collation'");
+		} else {
+			return mysqli_set_charset($this->link, $charset);
+		}
 	}
 
 	public function query($sql) {
@@ -73,20 +79,6 @@ class DriverMysqli extends DriverInterface {
 	public function getServerVersion() { return mysqli_get_server_info($this->link); }
 
 	public function getClientVersion() { return mysqli_get_client_info(); }
-	
-	/**
-	 * 字符集设置
-	 *
-	 * @param string $charset
-	 * @param string $collation
-	 * @return mysqli_result
-	 */
-	public function setChars($charset, $collation='') {
-		$set = "SET NAMES '$charset'";
-		$collation != '' && $set .= " COLLATE '$collation'";
-
-		return @mysqli_query($this->link, $set);
-	}
 
 	public function errorCode() {
 		return $this->link ? mysqli_errno($this->link) : mysqli_connect_errno();

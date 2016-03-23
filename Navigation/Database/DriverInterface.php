@@ -41,6 +41,15 @@ abstract class DriverInterface {
 	abstract public function close();
 
 	/**
+	 * Sets the default client character set and collation
+	 *
+	 * @param string $charset
+	 * @param string $collate
+	 * @return bool
+	 */
+	abstract public function setCharset($charset, $collate='');
+
+	/**
 	 * Execute a query and return
 	 *
 	 * @param string $sql

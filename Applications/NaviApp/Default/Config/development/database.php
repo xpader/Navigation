@@ -12,24 +12,17 @@ return array(
 		'tbprefix' => '',
 		'pconnect' => true,
 		'charset'  => 'gbk',
-		'collat'   => 'gbk_chinese_ci',
+		'collate'  => 'gbk_chinese_ci',
 		'type'     => 'mysql',
-		'driver'   => 'mysqli',
+		'driver'   => 'pdo',
 		'debug'    => true
 	),
 
 	'local' => array(
 		'dsn'      => '',
-		'host'     => '127.0.0.1',
-		'username' => 'root',
-		'password' => '0000',
-		'dbname'   => 'test',
-		'tbprefix' => '',
-		'pconnect' => true,
-		'charset'  => 'gbk',
-		'collat'   => 'gbk_chinese_ci',
-		'type'     => 'mysql',
-		'driver'   => 'mysqli',
+		'file'     => '/Development/www/test.db',
+		'type'     => 'sqlite',
+		'driver'   => 'pdo',
 		'debug'    => true
 	)
 );
