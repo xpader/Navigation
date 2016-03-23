@@ -2,8 +2,9 @@
 
 namespace Navigation\Database;
 
-use \mysqli;
-use \mysqli_result;
+use \PDO;
+use \PDOStatement;
+use \PDOException;
 
 class DriverPdo extends Db {
 
@@ -11,6 +12,58 @@ class DriverPdo extends Db {
 	protected $driverName = 'pdo';
 
 	protected function realConnect($config) {
+
+		$args = array();
+
+		//firebird,mssql,mysql,oci,oci8,odbc,pgsql,sqlite
+		switch ($config['type']) {
+			case 'sqlite':
+				$dsn = "sqlite:{$config['filename']}";
+				$args = array($dsn);
+				break;
+
+			default:
+				$dsnp = $opt = array();
+
+				$dsnp['host'] = $config['hostname'];
+				$dsnp['dbname'] = $config['database'];
+
+				if (isset($config['port'])) $dsnp['port'] = $config['port'];
+
+				if ($config['pconnect']) $opt[PDO::ATTR_PERSISTENT] = TRUE;
+
+				if (!empty($config['charset'])) {
+					$dsnp['charset'] = $config['charset'];
+					if ($config['dbdriver'] == 'mysql') {
+						$set = "SET NAMES '{$config['charset']}'";
+						empty($config['dbcollat']) || $set .= " COLLATE '{$config['dbcollat']}'";
+						$opt[PDO::MYSQL_ATTR_INIT_COMMAND] = $set;
+					}
+				}
+
+				$dsn = array();
+
+				foreach ($dsnp as $k => $v) {
+					$dsn[] = $k.'='.$v;
+				}
+
+				$dsn = $config['dbdriver'].':'.join(';',$dsn);
+				$args = array($dsn, $config['username'], $config['password']);
+
+				$opt && $args[3] = $opt;
+				break;
+		}
+
+		//Connect
+		try {
+			$class= new \ReflectionClass('PDO');
+			$this->pdo = $class->newInstanceArgs($args);
+		} catch (PDOException $e) {
+			$this->error('Failed to connect database', $e);
+		}
+
+		$this->config = $config;
+
 		$port = null;
 
 		if (strpos($config['hostname'], ':') !== false) {

@@ -18,10 +18,10 @@ class DriverMysqli extends DriverInterface {
 	public function connect($config) {
 		$port = null;
 
-		if (strpos($config['hostname'], ':') !== false) {
-			list($host, $port) = explode(':', $config['hostname']);
+		if (strpos($config['host'], ':') !== false) {
+			list($host, $port) = explode(':', $config['host']);
 		} else {
-			$host = $config['hostname'];
+			$host = $config['host'];
 			if (isset($config['port'])) {
 				$port = $config['port'];
 			}
@@ -36,7 +36,7 @@ class DriverMysqli extends DriverInterface {
 		}
 
 		//Set chars
-		if (isset($config['charset']) && $config['charset'] != '') $this->setChars($config['charset'],$config['dbcollat']);
+		if (isset($config['charset']) && $config['charset'] != '') $this->setChars($config['charset'],$config['collat']);
 
 		return true;
 	}
