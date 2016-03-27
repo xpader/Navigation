@@ -5,6 +5,7 @@ namespace Wide\Controller;
 use Navigation\Database\Db;
 use Navigation\Database\Util;
 use Wide\Model\Bon;
+use Wide\Model\Test as TestModel;
 
 class Test extends \Controller {
 
@@ -19,10 +20,10 @@ class Test extends \Controller {
 		echo 'This is test controller.<br />';
 
 		if (class_exists('\\Wide\\Model\\Test')) {
-			$obj = new \Wide\Model\Test();
+			$obj =  \Wide\Model\Test::instance();
 			echo $obj->iam();
 
-			$obj2 = new \Wide\Model\Test();
+			$obj2 = TestModel::instance();
 			echo $obj2->iam();
 		}
 	}
@@ -34,7 +35,7 @@ class Test extends \Controller {
 	}
 
 	public function ivkmodel() {
-		$m = new \Wide\Model\Test();
+		$m = TestModel::instance();
 
 		echo '<pre>';
 		print_r($m);
