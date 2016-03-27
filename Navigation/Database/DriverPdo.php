@@ -10,6 +10,9 @@ use \PDOException;
  * PDO driver of database
  *
  * This is a driver adapter for database class
+ *
+ * @package Navigation\Database
+ * @property PDO link
  */
 class DriverPdo extends DriverInterface {
 
@@ -128,7 +131,7 @@ class DriverPdo extends DriverInterface {
 
 }
 
-class PdoResult extends ResultInterface {
+class ResultPdo extends ResultInterface {
 
 	public function fetch($type=DB_ASSOC) {
 		return $this->result->fetch($type == DB_NUM ? PDO::FETCH_NUM : PDO::FETCH_ASSOC);

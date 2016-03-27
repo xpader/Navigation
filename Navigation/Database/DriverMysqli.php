@@ -16,6 +16,8 @@ use \mysqli;
  * Mysqli driver of MySQL database
  *
  * This is a driver adapter for database class
+ *
+ * @package Navigation\Database
  */
 class DriverMysqli extends DriverInterface {
 
@@ -95,7 +97,7 @@ class DriverMysqli extends DriverInterface {
 
 }
 
-class MysqliResult extends ResultInterface {
+class ResultMysqli extends ResultInterface {
 
 	public function fetch($type=DB_ASSOC) {
 		return mysqli_fetch_array($this->result, $type);

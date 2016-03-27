@@ -117,11 +117,20 @@ class Test extends \Controller {
 		$data = $result->fetch();
 		*/
 
-		$result = $db->query("SELECT * FROM text ORDER BY id ASC");
+		$result = $db->query("SELECT * FROM text ORDER BY id ASC LIMIT 10");
 
 		$data = $result->all();
 
+		var_dump($db->getClientVersion());
+
+		echo $db->dbType.'<br />';
+		echo $db->driverName.'<br />';
+
+		echo '<pre>';
 		print_r($data);
+		echo '</pre>';
+
+		echo $result->columnCount();
 	}
 
 }

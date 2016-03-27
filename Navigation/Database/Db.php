@@ -21,7 +21,7 @@ class Db {
 	 *
 	 * @var string
 	 */
-	protected $driverName;
+	public $driverName;
 
 	/**
 	 * @var DriverInterface
@@ -95,7 +95,6 @@ class Db {
 		}
 
 		$this->dbType = strtoupper($conf['type']);
-
 		$this->driverName = $conf['driver'];
 
 		$this->connect($conf);
@@ -118,7 +117,7 @@ class Db {
 		}
 
 		//set result adapter name
-		$this->resultClass = '\\Navigation\\Database\\'.ucfirst($this->driverName).'Result';
+		$this->resultClass = '\\Navigation\\Database\\Result'.ucfirst($this->driverName);
 
 		//set charset if isset in config
 		if (!empty($conf['charset'])) {
