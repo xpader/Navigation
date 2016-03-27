@@ -29,7 +29,7 @@ class Loader {
 			}
 
 			$arr = explode('/', $row);
-			$rename = $arr[count($arr) - 1];
+			$objName = $rename != '' ? $rename : (is_int($i) ? $arr[count($arr) - 1] : $i);
 
 			$arr = array_map('ucfirst', $arr);
 
@@ -40,7 +40,7 @@ class Loader {
 
 			//1 means Library, 2 means other class
 			$mark = $arr[0] == 'Library' ? 1 : 2;
-			$this->registerObject($rename, $mark.join('\\', $arr));
+			$this->registerObject($objName, $mark.join('\\', $arr));
 		}
 	}
 
@@ -51,7 +51,7 @@ class Loader {
 	 * @param mixed $data
 	 * @return bool Is register success? user can not register core object name
 	 */
-	public function registerObject($key, $data) {
+	protected function registerObject($key, $data) {
 		if (isset($this->objectMaps[$key]) && $this->objectMaps[$key] === 0) {
 			return false;
 		}
