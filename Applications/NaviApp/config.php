@@ -1,7 +1,7 @@
 <?php
 //Navigation Framework system config
 
-define('NAVI_APPS_PATH', __DIR__);
+define('NAVI_APPS_PATH', __DIR__.DIRECTORY_SEPARATOR.'Apps'.DIRECTORY_SEPARATOR);
 
 return array(
 	/**
@@ -29,16 +29,16 @@ return array(
 			'name' => 'Default Navi App',
 			'enabled' => true,
 			'namespace' => 'Wide',
-			'path' => __DIR__.DIRECTORY_SEPARATOR.'Default',
+			'path' => NAVI_APPS_PATH.'Default',
 			'serverName' => '*',
 			'envrionment' => 'development'
 		),
 		'test' => array(
-			'name' => 'Test Navi App',
+			'name' => 'My App',
 			'enabled' => false,
-			'namespace' => 'NaviTest',
-			'path' => __DIR__.DIRECTORY_SEPARATOR.'Test',
-			'serverName' => ['localhost', 't.pp.cn'],
+			'namespace' => 'My',
+			'path' => NAVI_APPS_PATH.'MyApp',
+			'serverName' => ['localhost', 'myapp.navi'],
 			'envrionment' => 'development'
 		)
 	)

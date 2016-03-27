@@ -32,6 +32,9 @@ class Test extends \Controller {
 		echo 'Hello World in Test Controller.';
 		echo '<br />';
 		echo $a.'-'.$b;
+		echo '<pre>';
+		print_r(get_included_files());
+		echo '</pre>';
 	}
 
 	public function ivkmodel() {

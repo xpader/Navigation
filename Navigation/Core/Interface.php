@@ -49,8 +49,8 @@ abstract class Controller {
 
 		$this->router = Navi::getObject('router');
 		$appIndex = $this->router->getCurrentAppIndex();
-
 		$this->config = new Config($appIndex);
+
 		$this->load = new Loader();
 		$this->input = Navi::getObject('input');
 	}
