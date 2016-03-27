@@ -4,8 +4,16 @@ namespace Wide\Controller;
 
 use Navigation\Database\Db;
 use Navigation\Database\Util;
+use Wide\Model\Bon;
 
 class Test extends \Controller {
+
+	public function __construct() {
+		parent::__construct();
+
+		$user = instance('\\Wide\\Model\\Test')->iam();
+		echo $user;
+	}
 
 	public function index() {
 		echo 'This is test controller.<br />';
@@ -131,6 +139,19 @@ class Test extends \Controller {
 		echo '</pre>';
 
 		echo $result->columnCount();
+	}
+
+	public function modelInstance() {
+		$m = instance('\\Wide\\Model\\Test');
+		echo $m->iam();
+
+		$b = \Wide\Model\Test::instance();
+		echo $m->iam();
+
+		print_r($this->_nvObjects);
+
+		$bon = Bon::instance();
+		$bon->test();
 	}
 
 }

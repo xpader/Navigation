@@ -34,6 +34,16 @@ abstract class Controller {
 	 */
 	public $load;
 
+	/**
+	 * Instanced objects array
+	 *
+	 * The object must save in dynamic controller
+	 * That when request finished, the object can be collection with controller
+	 *
+	 * @var array
+	 */
+	public $_nvObjects = array();
+
 	public function __construct() {
 		self::$instance =& $this;
 
@@ -109,6 +119,15 @@ abstract class Model {
 
 	public function __get($name) {
 		return getInstance()->$name;
+	}
+
+	/**
+	 * Return Single Instance
+	 *
+	 * @return $this
+	 */
+	public static function instance() {
+		return instance(get_called_class());
 	}
 
 }

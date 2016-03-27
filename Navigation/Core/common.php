@@ -42,6 +42,27 @@ function import($name) {
 	$NV->load->import($name);
 }
 
+/**
+ * Return Single Instance
+ *
+ * @param string $class Class name with full namespace
+ * @return Object
+ */
+function instance($class) {
+	$NV =& getInstance();
+
+	$key = strtolower($class);
+	$key = ltrim($key, '\\');
+
+	//The object must save in dynamic controller
+	//that when request finished, the object can be collection with controller
+	if (!isset($NV->_nvObjects[$key])) {
+		$NV->_nvObjects[$key] = new $class;
+	}
+
+	return $NV->_nvObjects[$key];
+}
+
 function nvCallError($message, $errorType=E_USER_ERROR) {
 	$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 	$trace = $trace[1];
@@ -118,7 +139,5 @@ function _nvShutdownHandler() {
 	exit(1);
 }
 
-class ExitException extends Exception {
-
-}
+class ExitException extends Exception {}
 
