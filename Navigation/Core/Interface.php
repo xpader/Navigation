@@ -7,8 +7,8 @@ use Navigation\Core\Loader;
 /**
  * Class Controller
  *
- * @property \Navigation\Core\Config config
- * @property \Navigation\Core\Router router
+ * @property Navigation\Core\Config config
+ * @property Navigation\Core\Router router
  */
 abstract class Controller {
 
@@ -25,7 +25,7 @@ abstract class Controller {
 	public $router;
 
 	/**
-	 * @var \Navigation\Core\Input
+	 * @var Navigation\Core\Input
 	 */
 	public $input;
 
@@ -42,7 +42,7 @@ abstract class Controller {
 	 *
 	 * @var array
 	 */
-	public $_nvObjects = array();
+	public $__nvObjects = array();
 
 	public function __construct() {
 		self::$instance =& $this;

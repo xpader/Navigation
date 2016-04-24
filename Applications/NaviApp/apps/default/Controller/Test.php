@@ -57,6 +57,8 @@ class Test extends \Controller {
 		$this->config->load('peace', false, false, true);
 
 		echo $this->config->get('k2');
+
+		echo $this->config->get('viewFileExtension');
 	}
 
 	public function updateConfig() {
@@ -66,7 +68,7 @@ class Test extends \Controller {
 	}
 
 	public function loader() {
-		$this->load->import(['mod/test', 'library/jovi']);
+		$this->load->import(array('mod/test', 'library/jovi'));
 
 		//$this->load->showMaps();
 
@@ -159,10 +161,19 @@ class Test extends \Controller {
 		$b = \Wide\Model\Test::instance();
 		echo $m->iam();
 
-		print_r($this->_nvObjects);
+		print_r($this->__nvObjects);
 
 		$bon = Bon::instance();
 		$bon->test();
+	}
+
+	public function view() {
+		$this->load->view('deep/dv');
+		unset($this->load);
+	}
+
+	public function gc() {
+		echo gc_collect_cycles();
 	}
 
 }

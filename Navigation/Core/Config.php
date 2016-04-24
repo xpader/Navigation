@@ -93,8 +93,6 @@ class Config {
 		$appConf = self::$activeApps[$app];
 		$confDir = $appConf['path'].DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR;
 
-		echo "<p>load file $name</p>";
-
 		$search = $confDir.$name.'.php';
 
 		if (is_file($search)) {

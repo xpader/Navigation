@@ -56,11 +56,11 @@ function instance($class) {
 
 	//The object must save in dynamic controller
 	//that when request finished, the object can be collection with controller
-	if (!isset($NV->_nvObjects[$key])) {
-		$NV->_nvObjects[$key] = new $class;
+	if (!isset($NV->__nvObjects[$key])) {
+		$NV->__nvObjects[$key] = new $class;
 	}
 
-	return $NV->_nvObjects[$key];
+	return $NV->__nvObjects[$key];
 }
 
 function nvCallError($message, $errorType=E_USER_ERROR) {
