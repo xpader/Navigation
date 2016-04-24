@@ -11,9 +11,6 @@ class Test extends \Controller {
 
 	public function __construct() {
 		parent::__construct();
-
-		$user = instance('\\Wide\\Model\\Test')->iam();
-		echo $user;
 	}
 
 	public function index() {
@@ -26,6 +23,11 @@ class Test extends \Controller {
 			$obj2 = TestModel::instance();
 			echo $obj2->iam();
 		}
+	}
+
+	public function instance() {
+		$user = instance('\\Wide\\Model\\Test')->iam();
+		echo $user;
 	}
 
 	public function newWorld($a=1,$b=2) {
@@ -48,8 +50,13 @@ class Test extends \Controller {
 	public function config() {
 		//$apps = $this->config->loadConfig();
 
-		var_dump($this->config->get('servlet'));
+		$this->config->load('peace');
 
+		echo $this->config->get('k1');
+
+		$this->config->load('peace', false, false, true);
+
+		echo $this->config->get('k2');
 	}
 
 	public function updateConfig() {

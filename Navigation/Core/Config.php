@@ -10,6 +10,7 @@ class Config {
 
 	private $configs;
 	private $appIndex;
+	private $loadedConfigs = array('config');
 
 	/**
 	 * Construct for controller
@@ -92,15 +93,18 @@ class Config {
 		$appConf = self::$activeApps[$app];
 		$confDir = $appConf['path'].DIRECTORY_SEPARATOR.'Config'.DIRECTORY_SEPARATOR;
 
-		$fetch = array(
-			$confDir.$appConf['envrionment'].DIRECTORY_SEPARATOR.$name.'.php',
-			$confDir.$name.'.php'
-		);
+		echo "<p>load file $name</p>";
 
-		foreach ($fetch as $configFile) {
-			if (is_file($configFile)) {
-				return include $configFile;
-			}
+		$search = $confDir.$name.'.php';
+
+		if (is_file($search)) {
+			return (include $search);
+		}
+
+		$search = $confDir.$appConf['envrionment'].DIRECTORY_SEPARATOR.$name.'.php';
+
+		if (is_file($search)) {
+			return (include $search);
 		}
 
 		return null;
@@ -128,9 +132,20 @@ class Config {
 	 * @param string $name
 	 * @param bool $useSection Is config in a stand alone space, if true, you must call get use $config
 	 * @param bool $return Return config array
-	 * @return array|null
+	 * @param bool $forceReload Is force reload file
+	 * @return void|array
 	 */
-	public function load($name, $useSection=false, $return=false) {
+	public function load($name, $useSection=false, $return=false, $forceReload=false) {
+		$isLoaded = in_array($name, $this->loadedConfigs);
+
+		if (!$forceReload && $isLoaded) {
+			if ($return) {
+				return isset(self::$appConfigMaps[$this->appIndex][$name]) ? self::$appConfigMaps[$this->appIndex][$name] : null;
+			} else {
+				return;
+			}
+		}
+
 		$config = self::sload($name, $this->appIndex);
 
 		if ($config === null) {
@@ -140,7 +155,11 @@ class Config {
 		if ($useSection) {
 			self::$appConfigMaps[$this->appIndex][$name] = $config;
 		} else {
-			self::$appConfigMaps[$this->appIndex][$name] += $config;
+			self::$appConfigMaps[$this->appIndex]['config'] += $config;
+		}
+
+		if (!$isLoaded) {
+			$this->loadedConfigs[] = $name;
 		}
 
 		if ($return) return $config;
