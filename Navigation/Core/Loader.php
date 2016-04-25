@@ -174,4 +174,8 @@ class Loader {
 		print_r($this->__nvObjectMaps);
 	}
 
+	public function database() {
+
+	}
+
 }

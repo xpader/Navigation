@@ -169,7 +169,6 @@ class Test extends \Controller {
 
 	public function view() {
 		$this->load->view('deep/dv');
-		unset($this->load);
 	}
 
 	public function gc() {
