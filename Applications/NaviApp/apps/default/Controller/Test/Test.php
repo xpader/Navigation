@@ -1,6 +1,6 @@
 <?php
 
-namespace Wide\Controller;
+namespace Wide\Controller\Test;
 
 use Navigation\Database\Db;
 use Navigation\Database\Util;
