@@ -1,3 +1,3 @@
 #Navigation (Navi)
 
-see [./Navigation/README.md](./Navigation/README.md)
+see [./Navigation/README.md](./Navigation)
