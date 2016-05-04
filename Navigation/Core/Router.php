@@ -10,6 +10,8 @@ class Router {
 	private $currentApp;
 
 	/**
+	 * Initialize on app startup
+	 *
 	 * @param array $activeApps
 	 * @param string $mapManager
 	 */
