@@ -12,7 +12,8 @@
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  */
 namespace Workerman;
-ini_set('display_errors', 'on');
+
+require_once __DIR__ . '/Lib/Constants.php';
 
 use \Workerman\Events\Libevent;
 use \Workerman\Events\Select;
@@ -34,7 +35,7 @@ class Worker
      * 版本号
      * @var string
      */
-    const VERSION = '3.2.5';
+    const VERSION = '3.3.2';
     
     /**
      * 状态 启动中
@@ -195,7 +196,7 @@ class Worker
      * 当前worker实例初始化目录位置，用于设置应用自动加载的根目录
      * @var string
      */
-    protected $_appInitPath = '';
+    protected $_autoloadRootPath = '';
     
     /**
      * 是否以守护进程的方式运行。运行start时加上-d参数会自动以守护进程方式运行
@@ -353,6 +354,10 @@ class Worker
      */
     public static function init()
     {
+        if(strpos(strtolower(PHP_OS), 'win') !== 0)
+        {
+            exit("workerman-for-win can not run in linux\n");
+        }
         $backtrace = debug_backtrace();
         self::$_startFile = $backtrace[count($backtrace)-1]['file'];
         // 没有设置日志文件，则生成一个默认值
@@ -604,7 +609,7 @@ class Worker
         
         // 获得实例化文件路径，用于自动加载设置根目录
         $backrace = debug_backtrace();
-        $this->_appInitPath = dirname($backrace[0]['file']);
+        $this->_autoloadRootPath = dirname($backrace[0]['file']);
         
         // 设置socket上下文
         if($socket_name)
@@ -628,7 +633,7 @@ class Worker
     public function listen()
     {
         // 设置自动加载根目录
-        Autoloader::setRootPath($this->_appInitPath);
+        Autoloader::setRootPath($this->_autoloadRootPath);
         
         if(!$this->_socketName)
         {
@@ -668,7 +673,7 @@ class Worker
         {
             $socket   = socket_import_stream($this->_mainSocket );
             @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, 1);
-            @socket_set_option($socket, SOL_SOCKET, TCP_NODELAY, 1);
+            @socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
         }
         
         // 设置非阻塞
@@ -703,7 +708,7 @@ class Worker
     public function run()
     {
         // 设置自动加载根目录
-        Autoloader::setRootPath($this->_appInitPath);
+        Autoloader::setRootPath($this->_autoloadRootPath);
         
         // 则创建一个全局事件轮询
         if(extension_loaded('libevent'))
@@ -767,7 +772,7 @@ class Worker
         $new_socket = stream_socket_accept($socket, 0);
         
         // 惊群现象，忽略
-        if(false === $new_socket)
+        if(!$new_socket)
         {
             return;
         }

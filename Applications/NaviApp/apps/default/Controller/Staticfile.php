@@ -26,7 +26,7 @@ class Staticfile extends \Controller {
 		if (substr($uri, 0, 8) == '/static/') {
 			$path = substr($uri, 8); //strip /static/
 		} else {
-			$path = substr($uri, 1); //ignoie left slash
+			$path = substr($uri, 1); //ignore left slash
 		}
 
 		//security
