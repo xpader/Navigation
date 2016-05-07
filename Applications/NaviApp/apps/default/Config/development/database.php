@@ -10,11 +10,11 @@ return array(
 		'password' => '0000',
 		'dbname'   => 'test',
 		'tbprefix' => '',
-		'pconnect' => true,
+		'pconnect' => false,
 		'charset'  => 'gbk',
 		'collate'  => 'gbk_chinese_ci',
 		'type'     => 'mysql',
-		'driver'   => 'pdo',
+		'driver'   => 'mysqli',
 		'debug'    => true
 	),
 

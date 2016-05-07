@@ -2,6 +2,8 @@
 
 namespace Navigation\Core;
 
+use Navigation\Database\Db;
+
 class Loader {
 
 	protected $__nvObjectMaps = array();
@@ -174,8 +176,9 @@ class Loader {
 		print_r($this->__nvObjectMaps);
 	}
 
-	public function database() {
-
+	public function database($config='default') {
+		$NV =& getInstance();
+		$NV->db = new Db($config);
 	}
 
 }

@@ -1,6 +1,7 @@
 <?php
 
-use \Workerman\Protocols\Http;
+use Workerman\Protocols\Http;
+use Navigation\Navi;
 
 function nvExit($status=null) {
 	$statusCode = null;
@@ -33,8 +34,8 @@ function nv404($status=3) {
 	nvExit('404 Page Not Found.');
 }
 
-function &getInstance() {
-	return \Controller::getInstance();
+function getInstance() {
+	return Navi::getObject('instance');
 }
 
 function import($name) {

@@ -110,22 +110,6 @@ class Test extends \Controller {
 		echo '<img src="http://127.0.0.1:8001/static/example.jpg" />';
 	}
 
-	public function db() {
-		$db = new Db('dsn');
-		$result = $db->query('SELECT * FROM text');
-
-		$row = $result->all();
-
-		$result->free();
-
-		print_r($row);
-
-		echo '<p>=====================================</p>';
-
-		$parse = Util::parseDsn('sqlite: host=127.0.0.1; username=root; password=0000; port=3306; dbname=test');
-		print_r($parse);
-	}
-
 	public function sqlite() {
 		$db = new Db('local');
 

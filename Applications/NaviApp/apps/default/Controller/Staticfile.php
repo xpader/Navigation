@@ -7,7 +7,7 @@ use Navigation\Navi;
 
 class Staticfile extends \Controller {
 
-	static $sender = null;
+	private static $sender = null;
 
 	/**
 	 * Output static file
@@ -46,7 +46,7 @@ class Staticfile extends \Controller {
 			self::$sender = $n;
 		}
 
-		self::$sender->send($file, array('X-Powered-By'=>'Navigation/'.Navi::VERSION));
+		self::$sender->send($file, array('X-Powered-By'=>'Navi/'.Navi::VERSION));
 	}
 
 }

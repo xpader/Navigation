@@ -23,6 +23,8 @@ class Navi {
 	 */
 	private static $input;
 
+	private static $instance;
+
 	/**
 	 * Initialize framework and bootstrap
 	 *
@@ -65,11 +67,27 @@ class Navi {
 	}
 
 	/**
+	 * Get object in Navi
+	 *
 	 * @param $name
 	 * @return Router
 	 */
 	public static function getObject($name) {
 		return isset(self::$$name) ? self::$$name : false;
+	}
+
+	/**
+	 * Set controller instance
+	 *
+	 * @param \Controller $instance
+	 * @throws \ExitException
+	 */
+	public static function setInstance(&$instance) {
+		if ($instance instanceof \Controller) {
+			self::$instance =& $instance;
+		} else {
+			nvExit("Navi Error: Not a valid controller instance.\n");
+		}
 	}
 
 	/**
@@ -123,6 +141,10 @@ class Navi {
 
 		//make sure input object been destory
 		self::$input = null;
+
+		//make sure static cycle been destory
+		unset($instance);
+		self::$instance = null;
 
 		if ($statusCode === 0) {
 			$buffer = ob_get_contents();

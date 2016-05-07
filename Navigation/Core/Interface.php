@@ -12,8 +12,6 @@ use Navigation\Core\Loader;
  */
 abstract class Controller {
 
-	private static $instance;
-
 	/**
 	 * @var Config
 	 */
@@ -45,7 +43,7 @@ abstract class Controller {
 	public $__nvObjects = array();
 
 	public function __construct() {
-		self::$instance =& $this;
+		Navi::setInstance($this);
 
 		$this->router = Navi::getObject('router');
 		$appIndex = $this->router->getCurrentAppIndex();
@@ -53,15 +51,6 @@ abstract class Controller {
 
 		$this->load = new Loader();
 		$this->input = Navi::getObject('input');
-	}
-
-	/**
-	 * Get Controller instance
-	 *
-	 * @return Controller
-	 */
-	public static function &getInstance() {
-		return self::$instance;
 	}
 
 	/**
@@ -111,6 +100,12 @@ abstract class Controller {
 		nvCallError("Undefined property: {$trace[1]['class']}::\$$name", E_USER_NOTICE);
 
 		return null;
+	}
+
+
+	public function __destruct() {
+		$class = get_called_class();
+		echo "<p>$class destruct.</p>\n";
 	}
 
 }
