@@ -69,41 +69,29 @@ class Db {
 	/**
 	 * Initialize config
 	 *
-	 * @param string|array $conf
+	 * @param array $config
 	 */
-	public function __construct($conf='default') {
-		if (!is_array($conf)) {
-			$NV =& getInstance();
-			$config = $NV->config->get($conf, 'database');
-
-			if (!$config) {
-				nvCallError("Undefined database config '$conf'");
-			}
-
-			$conf = $config;
-		}
-
-		$this->config = $conf;
-
+	public function __construct($config) {
 		//Check adapter
-		if (!isset($conf['driver'])) {
-			$conf['driver'] = 'pdo';
+		if (!isset($config['driver'])) {
+			$config['driver'] = 'pdo';
 		}
 
-		if (!in_array($conf['driver'], $this->allowDrivers)) {
-			nvCallError("Unsupport db adapter '{$conf['driver']}'");
+		if (!in_array($config['driver'], $this->allowDrivers)) {
+			nvCallError("Unsupport db adapter '{$config['driver']}'");
 		}
 
-		$this->dbType = strtoupper($conf['type']);
-		$this->driverName = $conf['driver'];
+		$this->config = $config;
+		$this->dbType = strtoupper($config['type']);
+		$this->driverName = $config['driver'];
 
-		$this->connect($conf);
+		$this->connect($config);
 	}
 
 	/**
 	 * Connect to database
 	 *
-	 * @param $conf
+	 * @param array $conf
 	 */
 	public function connect($conf) {
 		$adapterClass = '\\Navigation\\Database\\Driver'.ucfirst($this->driverName);

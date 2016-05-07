@@ -9,6 +9,7 @@ class Loader {
 	protected $__nvObjectMaps = array();
 	protected $__nvViewPath = '';
 	protected $__nvViewVars = array();
+	protected $__nvActiveDBLinks = array();
 
 	public function __construct() {
 		$NV =& getInstance();
@@ -176,9 +177,51 @@ class Loader {
 		print_r($this->__nvObjectMaps);
 	}
 
-	public function database($config='default') {
+	/**
+	 * Load and initialize a database connection
+	 *
+	 * @param string|array $config
+	 * @param string $instance The instance name in controller, set null to reuturn db instance
+	 * @param bool $queryBuilder Use query builder
+	 * @return Db|void
+	 */
+	public function database($config='default', $instance='db', $queryBuilder=false) {
 		$NV =& getInstance();
-		$NV->db = new Db($config);
+
+		//Load config, build config name
+		if (!is_array($config)) {
+			$name = $config;
+			$config = $NV->config->get($config, 'database');
+
+			if (!$config) {
+				nvCallError("Undefined database config '$name'");
+			}
+		} else {
+			$name = md5(http_build_query($config));
+		}
+
+		//new db config
+		if (!array_key_exists($name, $this->__nvActiveDBLinks)) {
+			$db = new Db($config);
+			nvLog(LOG_INFO, "Load database '$name' to instance '$instance'");
+
+		} else {
+			$db =& $NV->{$this->__nvActiveDBLinks[$name]};
+
+			//old config, but new instance name
+			if ($this->__nvActiveDBLinks[$name] !== $instance) {
+				nvLog(LOG_NOTICE, "Copy database instance '$name' to '$instance'");
+			} elseif (!$db->ping()) {
+				$db->connect($config);
+				nvLog(LOG_INFO, "Reload database '$name' of instance '$instance'");
+			}
+		}
+
+		if ($instance !== null) {
+			$NV->$instance = $db;
+		} else {
+			return $db;
+		}
 	}
 
 }

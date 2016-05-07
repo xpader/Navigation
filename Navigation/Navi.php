@@ -23,6 +23,9 @@ class Navi {
 	 */
 	private static $input;
 
+	/**
+	 * @var \Controller
+	 */
 	private static $instance;
 
 	/**
@@ -70,7 +73,7 @@ class Navi {
 	 * Get object in Navi
 	 *
 	 * @param $name
-	 * @return Router
+	 * @return Router|Input|\Controller
 	 */
 	public static function getObject($name) {
 		return isset(self::$$name) ? self::$$name : false;
@@ -142,7 +145,7 @@ class Navi {
 		//make sure input object been destory
 		self::$input = null;
 
-		//make sure static cycle been destory
+		//make sure static reference been destory
 		unset($instance);
 		self::$instance = null;
 

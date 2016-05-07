@@ -102,12 +102,6 @@ abstract class Controller {
 		return null;
 	}
 
-
-	public function __destruct() {
-		$class = get_called_class();
-		echo "<p>$class destruct.</p>\n";
-	}
-
 }
 
 abstract class Model {

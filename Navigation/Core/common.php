@@ -34,6 +34,11 @@ function nv404($status=3) {
 	nvExit('404 Page Not Found.');
 }
 
+/**
+ * Get controller instance
+ *
+ * @return Controller
+ */
 function getInstance() {
 	return Navi::getObject('instance');
 }
@@ -52,8 +57,8 @@ function import($name) {
 function instance($class) {
 	$NV =& getInstance();
 
-	$key = strtolower($class);
-	$key = ltrim($key, '\\');
+	//$key = strtolower($class);
+	$key = ltrim($class, '\\');
 
 	//The object must save in dynamic controller
 	//that when request finished, the object can be collection with controller
@@ -70,8 +75,12 @@ function nvCallError($message, $errorType=E_USER_ERROR) {
 	trigger_error("__NAVI_ERROR__\n$message\n{$trace['file']}\n{$trace['line']}", $errorType);
 }
 
-function nvLog($flag, $message) {
-
+/**
+ * @param int $level Log leve, use php constance:
+ * <p>LOG_DEBUG, LOG_INFO, LOG_NOTICE, LOG_WARNING, LOG_ERR, LOG_CRIT, LOG_ALERT, LOG_EMERG</p>
+ * @param string $message
+ */
+function nvLog($level, $message) {
 
 }
 
