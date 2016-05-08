@@ -7,7 +7,21 @@ use Navigation\Navi;
 
 class Staticfile extends \Controller {
 
+	/**
+	 * @var Sendfile
+	 */
 	private static $sender = null;
+
+	public function __construct() {
+		parent::__construct();
+
+		if (self::$sender === null) {
+			self::$sender = new Sendfile();
+			self::$sender->useETag = true;
+			self::$sender->cacheControl = true;
+			self::$sender->use304status = true;
+		}
+	}
 
 	/**
 	 * Output static file
@@ -36,15 +50,6 @@ class Staticfile extends \Controller {
 		}
 
 		$file = RUN_DIR.'/static/'.$path;
-
-		if (self::$sender === null) {
-			$n = new Sendfile();
-			$n->useETag = true;
-			$n->cacheControl = true;
-			$n->use304status = true;
-
-			self::$sender = $n;
-		}
 
 		self::$sender->send($file, array('X-Powered-By'=>'Navi/'.Navi::VERSION));
 	}
