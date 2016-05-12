@@ -115,7 +115,6 @@ function FindInPage(str) {
 			while (1) {
 				if (window.find(str,false,true)) break;
 			}
-			return;
 		}
 	} else if (is_ie) {
 		var found;

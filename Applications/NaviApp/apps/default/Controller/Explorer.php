@@ -5,117 +5,26 @@ namespace Wide\Controller;
 use Workerman\Protocols\Http;
 use Navigation\Library\Sendfile;
 
-/*
-	One Explorer - PHP
-	Copyright (c) 2008-2014 www.vgot.net
-
-## History ##
-1.0.0 ~ 2008-11-23
-	诞生
-1.0.1 ~ 2008-12-?
-	[访问目录]功能,版本使用 "VERSION" 常量定义
-1.0.2 ~ 2008-12-28
-	取消 getDirList() 函数，取消整体一半循环
-1.1.0 ~ 2008-12-29~30
-	增加多动作模式
-	重新将获取目录改为函数读取，但不增加循环次数
-	读目录函数对文件读取多属性，文件大小和创建时间
-	增加 图片 Base64 Code ，内置多种图标
-	更改整体排序
-	代码位置和逻辑优化，由中间 1.0.5 到 1.1.0
-	去除无缓存语句
-	~ 2008-12-30
-		修改一些页面上的显示错误
-		添加字符串截取函数
-		更改未知类型文件图标
-	~ 2008-12-31
-		修复文件扩展名大写识别不出类型的问题
-	~15:01 2009-3-28
-		修改了 footer();
-1.1.2
-	~10:12 2009-4-2
-		添加了.py(Python)文件图标
-		优化了很多图标边缘透明和大小
-	~23:56 2009-4-12
-		支持 .log 文件图标显示
-		增加 .xml 图标
-	~16:17 2009-4-14
-		SQL 文件关联文本图标
-		文件类型数组按字母顺序排序
-1.2.0 ~ 2009-4-22 ~ 23
-	头部工具条用CSS浮动,始终在页面上方
-	添加页面搜索工具
-	一些文件图标的关联
-	文件大小的单位转换显示
-	~10:10 2009-4-24
-	头部工具条链接前图标改为 Wingdings 图形字体
-	图片输出改为根据需求赋值,减小内存消耗,去除 printImage() 函数
-	图片全部强制缓存一天,减轻服务器负担,提高访问速度
-	其它的一些小修改
-	(下一步计划:类似于VISTA地址栏的地址转到功能,每一层都可以直接点击转到)
-1.2.0 final ~ 1:17 2009-5-5
-	添加 th.gif 到文件列表头部背景
-	使用 hoverTagBgFromId() 对文件列表行切换颜色
-	~10:27 2009-5-27
-	修改 zip.gif 透明边缘
-	~12:21 2009-7-31
-	修改文件和文件夹超链接样式下划线,可以看的到文件的"_"符号了
-1.2.2 final ~ 11:11 2009-10-14
-	使用 readyDo(); 函数在页面底部用于页面载入完成时执行事件
-	修改地址栏使用 JavaScript 生成类似 Vista 的点击级层定位
-	修复当地址栏出现类似 dir////dir 的地址时，PHP自动更正此问题
-1.2.3 final ~ 15:31 2010/10/12
-	修复获取图标以及dir中不存在变量错误 E_ALL 模式下图标不显示
-1.2.4 final ~ 15:49 2010/10/22
-	修改每个页面打开完成时聚焦到搜索框中等
-1.2.5 final ~ ??
-	不记的更新了什么了
-1.3 beta ~ 2011/5/15 12:35:24
-	修改地址为类似于 win7 的地址栏样式
-	调整部分架构以及一些BUG修复
-1.3.2 beta ~ 2011/5/15 18:35:21
-	一些图片增加和更换，页面的一些小变动
-	增加版权信息
-	三个导航修改为 CSS3 的按钮效果
-1.3.3 beta ~ 2012-1-13 16:11
-	针对 PHP STRICT 模式下的 BUG 修复
-1.3.4 beta ~ 2012-12-24
-	增加图标|列表浏览模式切换
-	一些程序逻辑及视图结构的优化
-1.3.5 beta ~ 2012-12-29
-	增加“类型”列
-	输出统一用 <?=$var?>
-	其它
-1.3.5 ~ 2014/8/5
-	增加了更多图标
-	删除未知图标判断并入 default
-1.3.5 ~ 2014/10/4
-	增加相关 Content-Type 的 header 输出，确保在 php 中即使开启了 default_charset 也能正常显示
-1.4.0
-	~ 2014/10/7
-		去除获取列表的函数，直接在过程中获取
-		修改列表，图标浏览模式设置参数形式，并且从 switch..case.. 中脱离
-		增加排序功能，可按文句名，时间等列表中的参数排序
-		解决较老版本IE浏览器下CSS图片背景不缓存的问题
-	~ 2014/10/17
-		优化文件列表排序算法及逻辑
-		修改根目录网页标题为当前访问域名
-		更多的路径容错修复
-		一些小优化
-1.4.1 ~ 2015/3/10
-	支持中文文件名和目录访问和下载
-	（补充和完善文件名编码以及在不同平台下的区分，以及在不同操作下如显示、操作、访问的文件名分开处理）
-	网页编码转换为 GBK
-	2015/3/11 修复升级后地址下拉列表当前目录无聚焦状态的问题
-1.5.0 ~ 2016/5/8
-	集成进 Navigation 框架，且只提供文件查看与下载功能，不负责访问 php 文件
-	修复中文目录与文件名在多种情况下的打开问题
-1.5.1 ~ 2016/5/12
-	更新面包屑导航中层级目录地址的数据位置（从隐藏文本放进元素属性中），更加合理，并且在某些超长目录名中不会出现溢出问题
-*/
+/**
+ * OneExplorer Navi
+ *
+ * OneExplorer 是一个单文件的 php 文件浏览器，主要用于展示服务器目录/文件列表以方便访问和下载等。
+ *
+ * 项目地址： http://blog.vgot.net/one-explorer/
+ * 更新日志： http://blog.vgot.net/archives/oneexplorer-update-log.html
+ *
+ * OneExplorer Navi 是基于 Navigation 框架的特殊版本，与常规版本主要的区别在于：
+ * 只提供文件查看与下载功能，不负责访问 php 文件
+ * 基于 Navigation 提供的面向对象结构代码更清晰易维护。
+ * 基于 Navigation 与 Workerman 提供的长驻能力，性能更优。
+ *
+ * Copyright (c) 2008-2016 www.vgot.net
+ *
+ * @author Pader (ypnow@163.com)
+ */
 class Explorer extends \Controller {
 
-	const VERSION = '1.5.1 (20160512)';
+	const VERSION = '1.5.1 (20160513)';
 	const DEFAULT_VIEWMODE = 'icon'; //默认目录列表类型 list|icon
 	const BASE_DIR = 'E:\\BaiduYunDownload';
 
@@ -539,8 +448,14 @@ EOF;
 	}
 
 	private function convertFileSize($size) {
-		$filesizename = array('Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
-		return $size ? number_format($size/pow(1024, ($i = floor(log($size, 1024)))), 2, '.', '').' '.$filesizename[$i] : '0 Bytes';
+		if ($size > 0) {
+			$units = array('Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+			return number_format($size/pow(1024, ($i = floor(log($size, 1024)))), 2, '.', '').' '.$units[$i];
+		} elseif ($size == 0) {
+			return '0 Bytes';
+		} else {
+			return '&gt;2 GB';
+		}
 	}
 
 	private function encodeUrl($uri) {
