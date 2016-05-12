@@ -6,8 +6,8 @@
 <meta http-equiv="Cache-Control" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <style type="text/css">
-html,body {overflow:hidden; width:100%; height:100%; margin:0px; background-color:#F7F7F7;}
-body,td,th {font-size:14px;font-family:Verdana,Arial,微软雅黑,宋体;}
+html,body {overflow:hidden; width:100%; height:100%; margin:0; background-color:#F7F7F7;}
+body,td,th {font-size:14px; font-family:Verdana,Arial,微软雅黑,宋体;}
 a {text-decoration:none; color:#0000FF;}
 table {border-collapse:collapse; border-spacing:0; empty-cells:show; clear:both;}
 table,ul,li {padding:0; margin:0;}
@@ -34,7 +34,7 @@ a.button {color:#CB760D;}
 .cc {zoom:1;}
 
 .addressBar {border-bottom:1px solid #D6E579; background-color:#F2FFA5;}
-.top {background-color:#F7FFC9; border-bottom:2px solid #D6E579; width:100%; position:absolute; top:0px; right:16px; z-index:1;}
+.top {background-color:#F7FFC9; border-bottom:2px solid #D6E579; width:100%; position:absolute; top:0; right:16px; z-index:1;}
 .top .search {float:right; margin-right:5px;}
 .top .toolbar {padding:3px 10px 3px 22px;}
 .top .nav {line-height:14px;}
@@ -45,7 +45,7 @@ a.button {color:#CB760D;}
 #address a, #address em {float:left; display:block; border:1px solid #F2FFA5; border-top:none; border-bottom:none; height:26px; line-height:26px;}
 #address a:hover, #address em:hover {color:#000; border-color:#D6E579;}
 #address a {text-decoration:none; color:#666; float:left; padding:0 3px;}
-#address em {width:14px; background:url(/explorer/image/sarrow.gif) center 9px no-repeat; text-indent:-2000px; position:relative;}
+#address em {width:14px; background:url(/explorer/image/sarrow.gif) center 9px no-repeat; position:relative;}
 #address em.current {background-position:center -15px; border-color:#D6E579;}
 #subdir {position:absolute; z-index:2; border:1px solid #CEDE6F; width:auto; display:inline-block; background-color:#F2FFA5; left:-1px; top:26px; padding:5px; list-style:none; overflow-y:auto; box-shadow:0 3px 3px rgba(0,0,0,.3);}
 #subdir li {background:url(/explorer/image/dir.gif) left center no-repeat; text-indent:23px; font-style:normal; border-bottom:1px solid #D8E87E;  padding-right:5px;}
@@ -107,7 +107,7 @@ function ToFindInPage() {
 function FindInPage(str) {
 	if(!str) {
 		alert('未找到指定内容');
-		return false;
+		return;
 	}
 	if (is_w3 || is_ns) {
 		if (!window.find(str)) {
@@ -115,7 +115,7 @@ function FindInPage(str) {
 			while (1) {
 				if (window.find(str,false,true)) break;
 			}
-			return false;
+			return;
 		}
 	} else if (is_ie) {
 		var found;
@@ -140,10 +140,8 @@ function FindInPage(str) {
 			} else {
 				alert('未找到指定内容');
 			}
-			return false;
 		}
 	}
-	return true;
 }
 
 function setBackgroundColorHover(id,tag,color) {
@@ -298,20 +296,24 @@ if (document.getElementById("filelist")) { setBackgroundColorHover("filelist","t
 var symbol = $("address").getElementsByTagName("em"), subdirs = [], listSubDirectorys = function() {
 	if (document.getElementById("subdir")) { removeElement($("subdir")); }
 
-	var dir = this.firstChild == null ? "" : this.firstChild.data + "/";
+	var dir = this.getAttribute("data-addr");
+	dir = dir ? dir + "/" : "";
+
 	var nextDir = this.nextSibling == null ? "" : this.nextSibling.innerHTML;
 
 	var sub = document.createElement("ul");
-	sub.setAttribute("id","subdir");
+	sub.setAttribute("id", "subdir");
 
-	pLoadScripts("/explorer/subdir?dir=" + dir,function(){
+	pLoadScripts("/explorer/subdir?dir=" + dir, function() {
 		for (var i=0,row; row=subdirs[i]; i++) {
 			var li = document.createElement("li");
 			if (row[0] == nextDir) { li.className = "current"; }
 			li.innerHTML = '<a href="?dir=' + dir + row[1] + '">' + row[0] + '</a>';
 			sub.appendChild(li);
 		}
+
 		var adjust = document.documentElement.clientHeight - 50;
+
 		if (sub.offsetHeight > adjust) {
 			sub.style.height = adjust + "px";
 			sub.style.width = (sub.offsetWidth + 18) + "px";

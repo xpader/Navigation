@@ -107,13 +107,15 @@ use Navigation\Library\Sendfile;
 	（补充和完善文件名编码以及在不同平台下的区分，以及在不同操作下如显示、操作、访问的文件名分开处理）
 	网页编码转换为 GBK
 	2015/3/11 修复升级后地址下拉列表当前目录无聚焦状态的问题
-1.4.2 ~ 2016/5/8
+1.5.0 ~ 2016/5/8
 	集成进 Navigation 框架，且只提供文件查看与下载功能，不负责访问 php 文件
 	修复中文目录与文件名在多种情况下的打开问题
+1.5.1 ~ 2016/5/12
+	更新面包屑导航中层级目录地址的数据位置（从隐藏文本放进元素属性中），更加合理，并且在某些超长目录名中不会出现溢出问题
 */
 class Explorer extends \Controller {
 
-	const VERSION = '1.4.2 (20160508)';
+	const VERSION = '1.5.1 (20160512)';
 	const DEFAULT_VIEWMODE = 'icon'; //默认目录列表类型 list|icon
 	const BASE_DIR = 'E:\\BaiduYunDownload';
 
@@ -173,7 +175,7 @@ class Explorer extends \Controller {
 		}
 
 		//获取路径
-		$dir = empty($_GET['dir']) ? '' : trim(preg_replace('/\/{1,}/', '/', $_GET['dir']), './');
+		$dir = empty($_GET['dir']) ? '' : $this->filterDir($_GET['dir']);
 		$path = realpath(self::BASE_DIR.'/'.$dir);
 
 		nvHeader('Content-Type: text/html; charset=gbk');
@@ -199,26 +201,24 @@ class Explorer extends \Controller {
 				$origName = $filename;
 				list($filename, $uri) = $this->getDisplayUri($filename);
 
+				$row = array(
+					'filename' => $filename,
+					'uri' => $uri,
+					'filemtime' => filemtime($path.'/'.$origName)
+				);
+
 				if (is_dir($path.'/'.$origName)) {
-					$row = array(
-						'filename' => $filename,
-						'uri' => $uri,
-						'filemtime' => filemtime($path.'/'.$origName)
-					);
 					$listDir[] = $row;
 					$isSortDir && $sortDir[] = $row[$sortField];
 				} else {
 					$ext = ($sp = strrpos($filename, '.')) !== false ? strtolower(substr($filename, $sp + 1)) : '';
-					$row = array(
-						'filename' => $filename,
-						'uri' => $uri,
-						'icon' => isset($types[$ext]) ? $types[$ext] : 'unknow.gif',
-						'type' => $ext,
-						'filesize' => filesize($path.'/'.$origName),
-						'filemtime' => filemtime($path.'/'.$origName)
-					);
+
+					$row['filesize'] = filesize($path.'/'.$origName);
 					$row['filesizeh'] = $this->convertFileSize($row['filesize']);
+					$row['type'] = $ext;
+					$row['icon'] = isset($types[$ext]) ? $types[$ext] : 'unknow.gif';
 					$listFile[] = $row;
+
 					$sort && $sortFile[] = $row[$sortField];
 				}
 			}
@@ -264,11 +264,11 @@ class Explorer extends \Controller {
 				$d = $bc;
 				list($filename, $uri) = $this->getDisplayUri($row);
 				$bc .= $bc ? '/'.$uri : $uri;
-				$link = '<a href="?dir='.$bc.'">'.$filename.'</a>';
-				$breadCrumb .= $breadCrumb ? '<em>'.$d.'</em>'.$link : $link;
+				$link = "<a href=\"?dir=$bc\">$filename</a>";
+				$breadCrumb .= $breadCrumb ? "<em data-addr=\"$d\"></em>".$link : $link;
 			}
 			if ($countDir) {
-				$breadCrumb .= "<em>$bc</em>";
+				$breadCrumb .= "<em data-addr=\"$bc\"></em>";
 			}
 		}
 
@@ -283,7 +283,7 @@ class Explorer extends \Controller {
 	}
 
 	public function subdir() {
-		$path = empty($_GET['dir']) ? '' : $_GET['dir'];
+		$path = empty($_GET['dir']) ? '' : $this->filterDir($_GET['dir']);
 		$path = realpath(self::BASE_DIR.'/'.$path);
 
 		is_dir($path) || nvExit();
@@ -534,6 +534,10 @@ EOF;
 		echo base64_decode($img);
 	}
 
+	private function filterDir($dir) {
+		return trim(preg_replace('#/{1,}#', '/', $dir), './');
+	}
+
 	private function convertFileSize($size) {
 		$filesizename = array('Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
 		return $size ? number_format($size/pow(1024, ($i = floor(log($size, 1024)))), 2, '.', '').' '.$filesizename[$i] : '0 Bytes';
@@ -546,15 +550,13 @@ EOF;
 	private function getDisplayUri($filename) {
 		static $nameEncodes = array('ASCII', 'GB2312', 'GBK', 'UTF-8');
 
-		if (preg_match('/^[\x00-\xff]+$/', $filename)) {
-			return array($filename, rawurlencode($filename));
-		}
-
+		//对非全角字符和URL涉及字符（#%&=?)进行转码
+		$uri = preg_replace_callback('/([^\x20-\x22\x24\x27-\x3c\x3e\x40-\x7e]+)/', function($m) { return rawurlencode($m[0]); }, $filename);
 		$code = mb_detect_encoding($filename, $nameEncodes);
 
 		//Windows 下访问 URL 必须以 UTF-8 编码
 		//$uri = ($code != 'UTF-8' && PHP_OS == 'WINNT') ? iconv($code, 'UTF-8', $filename) : $filename;
-		$uri = rawurlencode($filename);
+		//$uri = rawurlencode($filename);
 
 		//文件名必须以 GBK 显示
 		if ($code == 'UTF-8') {
