@@ -64,7 +64,7 @@ class Explorer extends \Controller {
 			$this->nameEncodes[] = 'CP936';
 		}
 		
-		$_ENV['time'] = time();
+		$this->time = time();
 	}
 
 	public function index() {
