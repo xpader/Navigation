@@ -3,8 +3,8 @@
  * run with command 
  * php start.php start
  */
-
 ini_set('display_errors', 'on');
+
 use Workerman\Worker;
 
 //兼容 Win 平台下的开发环境
@@ -28,12 +28,12 @@ if (strtolower(substr(PHP_OS, 0, 3)) == 'win') {
 define('GLOBAL_START', 1);
 define('RUN_DIR', __DIR__);
 
-require_once __DIR__ . '/'.$workermanType.'/Autoloader.php';
+require_once __DIR__ . "/$workermanType/Autoloader.php";
 
 Worker::$pidFile = __DIR__.'/workerman.pid';
 
 // 加载所有Applications/*/start.php，以便启动所有服务
-foreach(glob(__DIR__.'/Applications/*/start*.php') as $start_file) {
+foreach (glob(__DIR__.'/Applications/*/start*.php') as $start_file) {
     require_once $start_file;
 }
 
