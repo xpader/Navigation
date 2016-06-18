@@ -3,9 +3,11 @@ use \Workerman\Worker;
 use \Workerman\Autoloader;
 use \Navigation\Navi;
 
-// 自动加载类
-require_once __DIR__ . '/../../Workerman/Autoloader.php';
-Autoloader::setRootPath(__DIR__);
+// 非全局启动则自己加载 Workerman 的 Autoloader
+if (!defined('GLOBAL_START')) {
+	require_once __DIR__ . '/../../Workerman/Autoloader.php';
+	Autoloader::setRootPath(__DIR__);
+}
 
 if (!defined('RUN_DIR')) {
 	define('RUN_DIR', __DIR__ . '/../..');
