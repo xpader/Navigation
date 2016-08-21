@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>XChat</title>
+<title>XChat</title>K
 <style type="text/css">
 html, body {margin:0;}
 body {background-color:#2E476B; color:#D5D5D5;}
