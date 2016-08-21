@@ -12,7 +12,7 @@ class Loader {
 	protected $__nvActiveDBLinks = array();
 
 	public function __construct() {
-		$NV =& getInstance();
+		$NV = getInstance();
 		$currentApp = $NV->config->getCurrentApp();
 		$this->__nvViewPath = $currentApp['path'].DIRECTORY_SEPARATOR.'View'.DIRECTORY_SEPARATOR;
 	}
