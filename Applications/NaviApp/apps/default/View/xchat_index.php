@@ -49,7 +49,7 @@ $("#sendBtn").click(function() {
 	input.val("").focus();
 });
 
-var ws = new WebSocket("ws://127.0.0.1:8100");
+var ws = new WebSocket("ws://" + location.hostname + ":8100");
 
 ws.onopen = function(event) {
 
