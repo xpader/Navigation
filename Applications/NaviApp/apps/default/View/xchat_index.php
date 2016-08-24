@@ -3,19 +3,24 @@
 <head>
 <meta charset="utf-8">
 <title>XChat</title>
+<meta name="description" content="A simple chat room demo on websocket."/>
 <style type="text/css">
 html, body, ul, li {margin:0; padding:0;}
 ul, li {list-style:none;}
 body {background-color:#203656; color:#D5D5D5; font-size:14px; overflow:hidden;}
 * {box-sizing:border-box;}
+a {color:#8d89f9;}
+a:hover {color:#0c00ff;}
+a:visited {color:#807ea9;}
+
 .wrap {position:relative; max-width:600px; margin:0 auto; background-color:#2E476B;}
 .main {position:absolute; left:0; top:0; bottom:50px; width:100%;}
 .main > * {height:100%;}
 
-.pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0;}
+.pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-bottom:6px;}
 .pop > li {margin-top:6px;}
 .pop .tip {text-align:center;}
-.pop .tip span {background-color:#456088; color:#8d98a9; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
+.pop .tip span {background-color:#375175; color:#8d98a9; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
 
 .message {padding:0 10px;}
 .message-head {font-size:12px; color:#64758c;}
@@ -26,6 +31,8 @@ body {background-color:#203656; color:#D5D5D5; font-size:14px; overflow:hidden;}
 .message-send-status:after {content:"]";}
 
 .online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px;}
+.tech-desc {font-size:12px;}
+.tech-desc b {display:block; font-size:14px;}
 
 .tool {position:absolute; height:50px; left:0; bottom:0; width:100%;}
 .tool textarea {height:100%; width:auto; display:block; zoom:1; overflow:hidden;}
@@ -37,6 +44,16 @@ body {background-color:#203656; color:#D5D5D5; font-size:14px; overflow:hidden;}
 	<div class="main">
 		<div class="online">
 			<div>当前在线：<span id="onlineCount">..</span></div>
+			<hr/>
+			<p>Last pong <span id="lastActive">BEGIN</span> seconds ago.</p>
+			<hr/>
+			<div class="tech-desc">
+				<p><b>Websocket</b>Connection used</p>
+				<p><b>Ping -- Pong</b>Every 30 seconds</p>
+				<p><b>Workerman</b>PHP Socket Framework</p>
+			</div>
+			<hr/>
+			<p><a href="http://git.oschina.net/pader/Navigation" target="_blank">Git@OSC</a></p>
 		</div>
 		<ul class="pop"></ul>
 	</div>
@@ -48,8 +65,13 @@ body {background-color:#203656; color:#D5D5D5; font-size:14px; overflow:hidden;}
 
 <script src="/static/lib/jquery-2.2.4.js"></script>
 <script>
-var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), onlineCount = $("#onlineCount");
-var ws;
+var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), onlineCount = $("#onlineCount"),
+	lastActive = $("#lastActive");
+var ws, lastActiveTime = now();
+
+function now() {
+	return parseInt((new Date()).getTime() / 1000);
+}
 
 function sendMsg() {
 	var text = input.val();
@@ -74,14 +96,21 @@ function addMessage(id, time, nick, content, type) {
 		+ '<span class="message-nick">' + nick + '</span>[<span class="message-time">' + time + '</span>]'
 		+ '</div><div class="message-content">' + content + '</div></li>';
 
-	messageAppend(html);
+	messageAppend(html, type == 1);
 }
 
 function addTip(content) {
 	messageAppend('<li class="tip"><span>' + content + '</span></li>');
 }
 
-function messageAppend(html) {
+function messageAppend(html, forceScroll) {
+	//是否需要滚动
+	var popHeight = pop.innerHeight();
+
+	if (!forceScroll) {
+		forceScroll = (pop.prop("scrollHeight") - (pop.scrollTop() + popHeight) < 50);
+	}
+
 	pop.append(html);
 
 	var listCount = parseInt(pop.data("listCount") || 0) + 1;
@@ -93,8 +122,9 @@ function messageAppend(html) {
 
 	pop.data("listCount", listCount);
 
-	var st = pop.prop("scrollHeight") - pop.height();
-	st > 0 && pop.animate({scrollTop:st}, "fast");
+	if (forceScroll) {
+		pop.animate({scrollTop:pop.prop("scrollHeight") - popHeight}, 90);
+	}
 }
 
 function adjustWindowSize() {
@@ -160,7 +190,7 @@ function createConnection() {
 				break;
 
 			case "pong":
-				addTip('Pong: ' + data.time);
+				lastActiveTime = now();
 				break;
 
 			case "error":
@@ -201,6 +231,11 @@ input.keydown(function(e) {
 		return false;
 	}
 });
+
+var pongViewTimer = setInterval(function() {
+	var ago = now() - lastActiveTime;
+	lastActive.text(ago);
+}, 3500);
 
 adjustWindowSize();
 $(window).resize(adjustWindowSize);
