@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>XChat</title>
 <meta name="description" content="A simple chat room demo on websocket."/>
+<link rel="shortcut icon"type="image/x-icon" href="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
 <style type="text/css">
 html, body, ul, li {margin:0; padding:0;}
 ul, li {list-style:none;}
