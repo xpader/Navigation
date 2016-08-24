@@ -8,10 +8,6 @@ if (!defined('GLOBAL_START')) {
 	Autoloader::setRootPath(__DIR__);
 }
 
-if (!defined('RUN_DIR')) {
-	define('RUN_DIR', __DIR__ . '/../..');
-}
-
 $worker = new Worker('websocket://0.0.0.0:8100');
 $worker->name = 'xchat-server';
 $worker->count = 1;
@@ -22,11 +18,28 @@ $worker->onWorkerStart = function($worker) {
 
 $worker->onConnect = function($connection) {
 	$connection->lastActive = time();
-//	$connection->username = '123';
+	//$connection->username = '123';
 
-	$connection->onWebsocketConnect = function($connection) {
-		$connection->send(json_encode(['type'=>'init', 'id'=>$connection->id]));
-	};
+	//$connection->onWebsocketConnect = function($connection) {
+	//	$connection->send(json_encode(['type'=>'init', 'id'=>$connection->id]));\
+	//};
+	//
+	//$connection->onWebsocketClose = function() {
+	//};
+
+	$onlineCount = count($connection->worker->connections);
+
+	foreach ($connection->worker->connections as $conn) {
+		$conn->send(json_encode(['type'=>'online_count', 'num'=>$onlineCount, 'way'=>'in']));
+	}
+};
+
+$worker->onClose = function($connection) {
+	$onlineCount = count($connection->worker->connections);
+
+	foreach ($connection->worker->connections as $conn) {
+		$conn->send(json_encode(['type'=>'online_count', 'num'=>$onlineCount, 'way'=>'leave']));
+	}
 };
 
 /**
@@ -55,7 +68,9 @@ $worker->onMessage = function($connection, $data) {
 			$msgId = $connection->worker->msgAutoId;
 			++$connection->worker->msgAutoId;
 
-			$res = json_encode(['type'=>'msg', 'msg'=>$data['msg'], 'id'=>$msgId]);
+			$time = date('Y-m-d H:i:s');
+
+			$res = json_encode(['type'=>'msg', 'msg'=>$data['msg'], 'id'=>$msgId, 'time'=>$time]);
 
 			foreach ($connection->worker->connections as $conn) {
 				if ($conn->id != $connection->id) {
@@ -63,7 +78,7 @@ $worker->onMessage = function($connection, $data) {
 				}
 			}
 
-			$res = ['type'=>'send', 'status'=>'done', 'rnd'=>$data['rnd'], 'id'=>$msgId];
+			$res = ['type'=>'send', 'status'=>'done', 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
 			break;
 		case 'ping':
 			$res = ['type'=>'pong', 'time'=>time()];
