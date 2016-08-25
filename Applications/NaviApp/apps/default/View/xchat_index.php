@@ -36,7 +36,7 @@ a:visited {color:#807ea9;}
 .tech-desc b {display:block; font-size:14px;}
 
 .tool {position:absolute; height:50px; left:0; bottom:0; width:100%;}
-.tool textarea {height:100%; width:auto; display:block; zoom:1; overflow:hidden;}
+.tool textarea {height:100%; zoom:1; border:none; padding:5px;}
 .tool button {height:100%; width:50px; float:right; clear:right; display:block;}
 </style>
 </head>
@@ -58,23 +58,28 @@ a:visited {color:#807ea9;}
 		</div>
 		<ul class="pop"></ul>
 	</div>
-	<div class="tool">
+	<div class="tool" id="bottomArea">
 		<button type="button" id="sendBtn">发送</button>
-		<textarea id="sendText"></textarea>
+		<textarea id="sendText" placeholder="输入要发送的内容.."></textarea>
 	</div>
 </div>
 
 <script src="/static/lib/jquery-2.2.4.js"></script>
 <script>
 var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), onlineCount = $("#onlineCount"),
-	lastActive = $("#lastActive");
-var ws, lastActiveTime = now();
+	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn");
+var ws, lastActiveTime = now(), nickname = "";
 
 function now() {
 	return parseInt((new Date()).getTime() / 1000);
 }
 
 function sendMsg() {
+	if (ws == null) {
+		addTip("与服务器连接失败,无法发送消息");
+		return false;
+	}
+
 	var text = input.val();
 
 	if ($.trim(text) == "") {
@@ -84,7 +89,7 @@ function sendMsg() {
 
 	var rnd = Math.random().toString().split(".")[1];
 
-	addMessage('rnd' + rnd, '..', '我', text + ' <span class="message-send-status">...</span>', 1);
+	addMessage('rnd' + rnd, '..', nickname, text + ' <span class="message-send-status">...</span>', 1);
 	input.val("").focus();
 
 	ws.sendProxy("send", {msg:text, rnd:rnd});
@@ -129,8 +134,15 @@ function messageAppend(html, forceScroll) {
 	}
 }
 
-function adjustWindowSize() {
-	mainWrap.height($(window).height());
+function checkNickname() {
+	if (nickname == "") {
+		nickname = prompt("请先设置一个昵称:");
+
+		if ($.trim(nickname) == "") {
+			addTip("必须设置一个有效的昵称才能发送消息");
+			return false;
+		}
+	}
 }
 
 function createConnection() {
@@ -139,11 +151,22 @@ function createConnection() {
 		return;
 	}
 
-	ws = new WebSocket("ws://" + location.hostname + ":8100");
+	try {
+		ws = new WebSocket("ws://" + location.hostname + ":8100");
+	} catch (e) {
+		addTip("建立连接失败");
+		console.log(e);
+		return;
+	}
 
 	ws.onopen = function(event) {
-
 		var self = this;
+
+		addTip("已建立连接");
+
+		if (nickname != "") {
+			this.sendProxy("reg", {nick: nickname});
+		}
 
 		this.pingTimer = null;
 
@@ -159,8 +182,6 @@ function createConnection() {
 		};
 
 		this.setPing();
-
-		addTip("已建立连接");
 	};
 
 	ws.onmessage = function(event) {
@@ -206,10 +227,17 @@ function createConnection() {
 	};
 
 	ws.onclose = function() {
-		this.clearPing();
+		if (this.readyState != 3) {
+			this.clearPing();
+		}
+
 		ws = null;
 		addTip("连接已断开，正在重连..");
-		setTimeout(createConnection, 2000)
+		setTimeout(createConnection, 3000)
+	};
+
+	ws.onerror = function(e) {
+		console.log(e);
 	};
 
 	ws.sendProxy = function(type, data) {
@@ -222,25 +250,33 @@ function createConnection() {
 	};
 }
 
-createConnection();
+function adjustWindowSize() {
+	mainWrap.height($(window).height());
+	input.width(bottomArea.width() - sendBtn.outerWidth() - 10);
+}
 
-$("#sendBtn").click(sendMsg);
+$(function(){
+	adjustWindowSize();
 
-//回车时发送
-input.keydown(function(e) {
-	if (e.keyCode == 13) {
-		sendMsg();
-		return false;
-	}
+	createConnection();
+
+	sendBtn.click(sendMsg);
+
+	//回车时发送
+	input.keydown(function(e) {
+		if (e.keyCode == 13) {
+			sendMsg();
+			return false;
+		}
+	});
+
+	var pongViewTimer = setInterval(function() {
+		var ago = now() - lastActiveTime;
+		lastActive.text(ago);
+	}, 3500);
+
+	$(window).resize(adjustWindowSize);
 });
-
-var pongViewTimer = setInterval(function() {
-	var ago = now() - lastActiveTime;
-	lastActive.text(ago);
-}, 3500);
-
-adjustWindowSize();
-$(window).resize(adjustWindowSize);
 </script>
 </body>
 </html>
