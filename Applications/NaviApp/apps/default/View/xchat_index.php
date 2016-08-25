@@ -9,10 +9,15 @@
 html, body, ul, li {margin:0; padding:0;}
 ul, li {list-style:none;}
 body {background-color:#203656; color:#D5D5D5; font-size:14px; overflow:hidden;}
+/*::-webkit-scrollbar-track-piece {background-color: rgba(255,255,255,0.2);}*/
+::-webkit-scrollbar {width:5px; height:10px;}
+::-webkit-scrollbar-thumb {background-color:rgba(110, 135, 171, 0.5); border-radius:6px; background-clip:padding-box; border:none; min-height:28px;}
+::-webkit-scrollbar-thumb:hover {background-color:rgb(110, 135, 171);}
 * {box-sizing:border-box;}
 a {color:#8d89f9;}
 a:hover {color:#0c00ff;}
 a:visited {color:#807ea9;}
+hr {border:none; height:1px; background-color:#5d7698;}
 
 .wrap {position:relative; max-width:600px; margin:0 auto; background-color:#2E476B;}
 .main {position:absolute; left:0; top:0; bottom:50px; width:100%;}
@@ -31,13 +36,17 @@ a:visited {color:#807ea9;}
 .message-send-status:before {content:"[";}
 .message-send-status:after {content:"]";}
 
-.online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px;}
+.online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px; overflow-y:auto;}
 .tech-desc {font-size:12px;}
 .tech-desc b {display:block; font-size:14px;}
-
+#onlineList li {margin-left:6px; list-style:disc inside;}
 .tool {position:absolute; height:50px; left:0; bottom:0; width:100%;}
 .tool textarea {height:100%; zoom:1; border:none; padding:5px;}
 .tool button {height:100%; width:50px; float:right; clear:right; display:block;}
+.tool-name-reg {position:absolute; z-index:1; left:0; bottom:0; height:100%; width:100%; background-color:#7a92b5;}
+.tool-name-reg form {width:200px; margin:15px auto 0;}
+.reg-name {width:130px; margin:0;}
+.reg-btn {width:60px; margin:0; margin-left:5px;}
 </style>
 </head>
 <body>
@@ -45,6 +54,8 @@ a:visited {color:#807ea9;}
 	<div class="main">
 		<div class="online">
 			<div>当前在线：<span id="onlineCount">..</span></div>
+			<hr/>
+			<ul id="onlineList"></ul>
 			<hr/>
 			<p>Last pong <span id="lastActive">BEGIN</span> seconds ago.</p>
 			<hr/>
@@ -59,224 +70,18 @@ a:visited {color:#807ea9;}
 		<ul class="pop"></ul>
 	</div>
 	<div class="tool" id="bottomArea">
+		<div class="tool-name-reg">
+			<form method="post">
+				<input type="text" name="mynick" value="" placeholder="输入昵称.." class="reg-name" autocomplete="off"/>
+				<input type="submit" value="开始聊天" class="reg-btn" />
+			</form>
+		</div>
 		<button type="button" id="sendBtn">发送</button>
 		<textarea id="sendText" placeholder="输入要发送的内容.."></textarea>
 	</div>
 </div>
 
 <script src="/static/lib/jquery-2.2.4.js"></script>
-<script>
-var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), onlineCount = $("#onlineCount"),
-	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn");
-var ws, lastActiveTime = now(), nickname = "";
-
-function now() {
-	return parseInt((new Date()).getTime() / 1000);
-}
-
-function sendMsg() {
-	if (ws == null) {
-		addTip("与服务器连接失败,无法发送消息");
-		return false;
-	}
-
-	var text = input.val();
-
-	if ($.trim(text) == "") {
-		addTip("输入内容不可以为空或者纯空格");
-		return false;
-	}
-
-	var rnd = Math.random().toString().split(".")[1];
-
-	addMessage('rnd' + rnd, '..', nickname, text + ' <span class="message-send-status">...</span>', 1);
-	input.val("").focus();
-
-	ws.sendProxy("send", {msg:text, rnd:rnd});
-}
-
-function addMessage(id, time, nick, content, type) {
-	var className = (!type || type == 0) ? "message-receive" : "message-send";
-	var html = '<li class="message ' + className + '" id="' + id + '">'
-		+ '<div class="message-head">'
-		+ '<span class="message-nick">' + nick + '</span>[<span class="message-time">' + time + '</span>]'
-		+ '</div><div class="message-content">' + content + '</div></li>';
-
-	messageAppend(html, type == 1);
-}
-
-function addTip(content) {
-	messageAppend('<li class="tip"><span>' + content + '</span></li>');
-}
-
-function messageAppend(html, forceScroll) {
-	//是否需要滚动
-	var popHeight = pop.innerHeight();
-
-	if (!forceScroll) {
-		pop.stop(false, true);
-		forceScroll = (pop.prop("scrollHeight") - (pop.scrollTop() + popHeight) < 50);
-	}
-
-	pop.append(html);
-
-	var listCount = parseInt(pop.data("listCount") || 0) + 1;
-
-	if (listCount > 200) {
-		pop.find("> li").slice(0, 20).remove();
-		listCount = pop.find("> li").length;
-	}
-
-	pop.data("listCount", listCount);
-
-	if (forceScroll) {
-		pop.animate({scrollTop:pop.prop("scrollHeight") - popHeight}, 100);
-	}
-}
-
-function checkNickname() {
-	if (nickname == "") {
-		nickname = prompt("请先设置一个昵称:");
-
-		if ($.trim(nickname) == "") {
-			addTip("必须设置一个有效的昵称才能发送消息");
-			return false;
-		}
-	}
-}
-
-function createConnection() {
-	if (ws != null) {
-		console.log("Connection is still on use, create failed!");
-		return;
-	}
-
-	try {
-		ws = new WebSocket("ws://" + location.hostname + ":8100");
-	} catch (e) {
-		addTip("建立连接失败");
-		console.log(e);
-		return;
-	}
-
-	ws.onopen = function(event) {
-		var self = this;
-
-		addTip("已建立连接");
-
-		if (nickname != "") {
-			this.sendProxy("reg", {nick: nickname});
-		}
-
-		this.pingTimer = null;
-
-		this.setPing = function() {
-			self.pingTimer = setTimeout(function() {
-				var data = {type:"ping"};
-				self.send(JSON.stringify(data));
-			}, 30000);
-		};
-
-		this.clearPing = function() {
-			clearTimeout(ws.pingTimer);
-		};
-
-		this.setPing();
-	};
-
-	ws.onmessage = function(event) {
-		var data = JSON.parse(event.data);
-
-		switch (data.type) {
-			case "msg":
-				addMessage('msg' + data.id, data.time, '某人', data.msg);
-				break;
-
-			case "send":
-				var li = $("#rnd" + data.rnd);
-				var statusContainer = li.find(".message-send-status");
-
-				li.data("id", data.id);
-
-				if (data.status == "done") {
-					statusContainer.text("✔");
-					li.find(".message-time").text(data.time);
-				} else {
-					statusContainer.text(data.status);
-				}
-				break;
-
-			case "online_count":
-				onlineCount.text(data.num);
-
-				addTip('某用户' + (data.way == "in" ? "进入" : "离开") + '了房间');
-				break;
-
-			case "pong":
-				lastActiveTime = now();
-				break;
-
-			case "error":
-				addTip(data.msg);
-				break;
-		}
-
-		this.clearPing();
-		this.setPing();
-
-	};
-
-	ws.onclose = function() {
-		if (this.readyState != 3) {
-			this.clearPing();
-		}
-
-		ws = null;
-		addTip("连接已断开，正在重连..");
-		setTimeout(createConnection, 3000)
-	};
-
-	ws.onerror = function(e) {
-		console.log(e);
-	};
-
-	ws.sendProxy = function(type, data) {
-		data.type = type;
-
-		this.send(JSON.stringify(data));
-
-		this.clearPing();
-		this.setPing();
-	};
-}
-
-function adjustWindowSize() {
-	mainWrap.height($(window).height());
-	input.width(bottomArea.width() - sendBtn.outerWidth() - 10);
-}
-
-$(function(){
-	adjustWindowSize();
-
-	createConnection();
-
-	sendBtn.click(sendMsg);
-
-	//回车时发送
-	input.keydown(function(e) {
-		if (e.keyCode == 13) {
-			sendMsg();
-			return false;
-		}
-	});
-
-	var pongViewTimer = setInterval(function() {
-		var ago = now() - lastActiveTime;
-		lastActive.text(ago);
-	}, 3500);
-
-	$(window).resize(adjustWindowSize);
-});
-</script>
+<script src="/static/xchat.js"></script>
 </body>
 </html>
