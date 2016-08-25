@@ -24,13 +24,13 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .main > * {height:100%;}
 
 .pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-bottom:15px;}
-.pop > li {margin-top:6px;}
+.pop > li {margin-top:10px;}
 .pop .tip {text-align:center;}
-.pop .tip span {background-color:#375175; color:#8d98a9; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
+.pop .tip span {background-color:#395276; color:#7B8AA1; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
 
 .message {padding:0 10px;}
-.message-head {font-size:12px; color:#64758c;}
-.message-nick {margin-right:5px;}
+.message-head {font-size:12px; color:#8193A9; margin-bottom:2px;}
+.message-nick {margin-right:7px;}
 .message-send {text-align:right;}
 .message-send-status {color:#3ac313; margin-left:10px; font-size:10px;}
 .message-send-status:before {content:"[";}

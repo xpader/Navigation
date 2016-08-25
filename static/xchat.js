@@ -34,7 +34,7 @@ function addMessage(id, time, nick, content, type) {
 	var className = (!type || type == 0) ? "message-receive" : "message-send";
 	var html = '<li class="message ' + className + '" id="' + id + '">'
 		+ '<div class="message-head">'
-		+ '<span class="message-nick">' + nick + '</span>[<span class="message-time">' + time + '</span>]'
+		+ '<span class="message-nick">' + nick + '</span><span class="message-time">' + time + '</span>'
 		+ '</div><div class="message-content">' + content + '</div></li>';
 
 	messageAppend(html, type == 1);
