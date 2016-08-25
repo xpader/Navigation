@@ -21,7 +21,7 @@ function sendMsg() {
 
 	var rnd = Math.random().toString().split(".")[1];
 
-	addMessage('rnd' + rnd, '..', nickname, text + ' <span class="message-send-status">...</span>', 1);
+	addMessage('rnd' + rnd, '...', nickname, text, 1);
 
 	ws.sendProxy("send", {msg:text, rnd:rnd});
 
@@ -121,15 +121,12 @@ function createConnection() {
 
 			case "send":
 				var li = $("#rnd" + data.rnd);
-				var statusContainer = li.find(".message-send-status");
-
 				li.data("id", data.id);
 
 				if (data.status == "done") {
-					statusContainer.text("✔");
 					li.find(".message-time").text(data.time);
 				} else {
-					statusContainer.text(data.status);
+					addTip(data.status);
 				}
 				break;
 

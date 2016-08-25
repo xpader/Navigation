@@ -32,9 +32,6 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .message-head {font-size:12px; color:#8193A9; margin-bottom:2px;}
 .message-nick {margin-right:7px;}
 .message-send {text-align:right;}
-.message-send-status {color:#3ac313; margin-left:10px; font-size:10px;}
-.message-send-status:before {content:"[";}
-.message-send-status:after {content:"]";}
 
 .online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px; overflow-y:auto;}
 .tech-desc {font-size:12px;}
