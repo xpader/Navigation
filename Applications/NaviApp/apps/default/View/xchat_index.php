@@ -8,7 +8,7 @@
 <style type="text/css">
 html, body, ul, li {margin:0; padding:0;}
 ul, li {list-style:none;}
-body {background-color:#203656; color:#D5D5D5; font-size:14px; overflow:hidden;}
+body {background-color:#203656; color:#D5D5D5; font-size:14px; font-family:Helvetica Neue, Helvetica, Arial, PingFang SC, Hiragino Sans GB, WenQuanYi Micro Hei, Microsoft Yahei, sans-serif; overflow:hidden;}
 /*::-webkit-scrollbar-track-piece {background-color: rgba(255,255,255,0.2);}*/
 ::-webkit-scrollbar {width:5px; height:10px;}
 ::-webkit-scrollbar-thumb {background-color:rgba(110, 135, 171, 0.5); border-radius:6px; background-clip:padding-box; border:none; min-height:28px;}
@@ -45,8 +45,8 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .tool button {height:100%; width:50px; float:right; clear:right; display:block;}
 .tool-name-reg {position:absolute; z-index:1; left:0; bottom:0; height:100%; width:100%; background-color:#7a92b5;}
 .tool-name-reg form {width:200px; margin:15px auto 0;}
-.reg-name {width:130px; margin:0;}
-.reg-btn {width:60px; margin:0; margin-left:5px;}
+.reg-name {width:130px; margin:0; float:left;}
+.reg-btn {width:60px; padding:0; margin-left:5px;}
 </style>
 </head>
 <body>
