@@ -23,7 +23,7 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .main {position:absolute; left:0; top:0; bottom:50px; width:100%;}
 .main > * {height:100%;}
 
-.pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-bottom:6px;}
+.pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-bottom:15px;}
 .pop > li {margin-top:6px;}
 .pop .tip {text-align:center;}
 .pop .tip span {background-color:#375175; color:#8d98a9; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
