@@ -86,37 +86,29 @@ function createConnection() {
 		return;
 	}
 
-	try {
-		ws = new WebSocket("ws://" + location.hostname + ":8100");
-	} catch (e) {
-		addTip("建立连接失败");
-		console.log(e);
-		return;
-	}
+	ws = new WebSocket("ws://" + location.hostname + ":8100");
+
+	var pingTimer = null;
+
+	ws.setPing = function() {
+		pingTimer = setTimeout(function() {
+			var data = {type:"ping"};
+			ws.send(JSON.stringify(data));
+		}, 30000);
+	};
+
+	ws.clearPing = function() {
+		clearTimeout(pingTimer);
+	};
 
 	ws.onopen = function(event) {
-		var self = this;
-
 		addTip("已建立连接");
 
 		if (nickname != "") {
 			this.sendProxy("reg", {nick: nickname});
 		}
 
-		this.pingTimer = null;
-
-		this.setPing = function() {
-			self.pingTimer = setTimeout(function() {
-				var data = {type:"ping"};
-				self.send(JSON.stringify(data));
-			}, 30000);
-		};
-
-		this.clearPing = function() {
-			clearTimeout(ws.pingTimer);
-		};
-
-		this.setPing();
+		ws.setPing();
 	};
 
 	ws.onmessage = function(event) {
@@ -192,16 +184,12 @@ function createConnection() {
 				break;
 		}
 
-		this.clearPing();
-		this.setPing();
-
+		ws.clearPing();
+		ws.setPing();
 	};
 
 	ws.onclose = function() {
-		if (this.readyState != 3) {
-			this.clearPing();
-		}
-
+		ws.clearPing();
 		ws = null;
 		addTip("连接已断开，正在重连..");
 		setTimeout(createConnection, 3000)
@@ -214,10 +202,10 @@ function createConnection() {
 	ws.sendProxy = function(type, data) {
 		data.type = type;
 
-		this.send(JSON.stringify(data));
+		ws.send(JSON.stringify(data));
 
-		this.clearPing();
-		this.setPing();
+		ws.clearPing();
+		ws.setPing();
 	};
 }
 
