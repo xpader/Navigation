@@ -12,9 +12,7 @@ $worker = new Worker('websocket://0.0.0.0:8100');
 $worker->name = 'xchat-server';
 $worker->count = 1;
 
-$worker->onWorkerStart = function($worker) {
-	$worker->msgAutoId = 1;
-};
+$msgAutoId = 1;
 
 $worker->onConnect = function($connection) {
 	$connection->lastActive = time();
@@ -48,7 +46,7 @@ $worker->onClose = function($connection) {
  * @param \Workerman\Connection\TcpConnection $connection
  * @param mixed $data
  */
-$worker->onMessage = function($connection, $data) {
+$worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 	$data = @json_decode($data, true);
 
 	if (!is_array($data)) {
@@ -68,8 +66,8 @@ $worker->onMessage = function($connection, $data) {
 			}
 
 			$time = date('Y-m-d H:i:s');
-			$msgId = $connection->worker->msgAutoId;
-			++$connection->worker->msgAutoId;
+			$msgId = $msgAutoId;
+			++$msgAutoId;
 
 			sendToAll($connection, [
 				'type'=>'msg',
