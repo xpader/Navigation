@@ -17,7 +17,7 @@ $msgAutoId = 1;
 $worker->onConnect = function($connection) {
 	$connection->lastActive = time();
 	$connection->nickname = '';
-	$connection->uid = md5('xchat'.$connection->id);
+	$connection->uid = md5(rand(10000, 99999).'-'.$connection->id);
 
 	$onlineCount = count($connection->worker->connections);
 	
@@ -39,7 +39,7 @@ $worker->onClose = function($connection) {
 		'num'=>$onlineCount,
 		'way'=>'leave',
 		'uid'=>$connection->uid
-	], true);
+	]);
 };
 
 /**
@@ -69,14 +69,42 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 			$msgId = $msgAutoId;
 			++$msgAutoId;
 
-			sendToAll($connection, [
-				'type'=>'msg',
-				'nick'=>$connection->nickname,
-				'msg'=>$data['msg'],
-				'id'=>$msgId,
-				'uid'=>$connection->uid,
-				'time'=>$time
-			]);
+            //隐藏命令
+            if (substr($data['msg'], 0, 6) == 'xchat:') {
+                $command = substr($data['msg'], 6);
+
+                $res = ['type' => 'error', 'msg' => ''];
+
+                switch ($command) {
+                    case 'gc':
+                        $gcNum = gc_collect_cycles();
+                        $memory = memory_get_usage();
+                        $memoryReal = memory_get_usage(true);
+                        $res['msg'] = "gc: $gcNum, memory: $memory, real: $memoryReal";
+                        break;
+
+                    case 'mem':
+                        $memory = memory_get_usage();
+                        $memoryReal = memory_get_usage(true);
+                        $res['msg'] = "memory: $memory, real: $memoryReal";
+                        break;
+
+                    default:
+                        $res['msg'] = "$command:未知命令";
+                }
+
+                $connection->send(json_encode($res));
+
+            } else {
+                sendToAll($connection, [
+                    'type'=>'msg',
+                    'nick'=>$connection->nickname,
+                    'msg'=>$data['msg'],
+                    'id'=>$msgId,
+                    'uid'=>$connection->uid,
+                    'time'=>$time
+                ]);
+            }
 
 			$res = ['type'=>'send', 'status'=>'done', 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
 			break;
@@ -116,14 +144,14 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 	}
 
 	if (isset($res)) {
-		$connection->send(json_encode($res));
+		$connection->send(json_encode($res, JSON_UNESCAPED_UNICODE));
 	}
 
 	$connection->lastActive = time();
 };
 
 function sendToAll($connection, $res, $includeSelf=false) {
-	$res = json_encode($res);
+	$res = json_encode($res, JSON_UNESCAPED_UNICODE);
 	
 	foreach ($connection->worker->connections as $conn) {
 		if (!$includeSelf && $conn->id == $connection->id) {
