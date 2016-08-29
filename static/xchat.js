@@ -80,6 +80,10 @@ function checkNickname() {
 	}
 }
 
+function getNick(nick) {
+	return nick ? nick : '路人甲';
+}
+
 function createConnection() {
 	if (ws != null) {
 		console.log("Connection is still on use, create failed!");
@@ -116,24 +120,25 @@ function createConnection() {
 
 		switch (data.type) {
 			case "msg":
-				addMessage('msg' + data.id, data.time, (data.nick ? data.nick : '路人甲'), data.msg);
+				addMessage('msg' + data.id, data.time, getNick(data.nick), data.msg);
 				break;
 
 			case "send":
 				var li = $("#rnd" + data.rnd);
-				li.data("id", data.id);
 
-				if (data.status == "done") {
+				if (data.status) {
+					li.data("id", data.id);
 					li.find(".message-time").text(data.time);
 				} else {
-					addTip(data.status);
+					li.find(".message-time").text('..发送失败').css("color", "#F00");
+					addTip(data.msg);
 				}
 				break;
 
 			case "online_count":
 				onlineCount.text(data.num);
 
-				var nick = (data.nick ? data.nick : '路人甲');
+				var nick = getNick(data.nick);
 
 				if (data.way == "in") {
 					onlineList.append('<li data-uid="' + data.uid + '">' + nick + '</li>');
@@ -145,7 +150,7 @@ function createConnection() {
 				break;
 
 			case "rename":
-				addTip((data.oldnick ? data.oldnick : '路人甲') + " 改名为 " + data.newnick);
+				addTip(getNick(data.oldnick) + " 改名为 " + data.newnick);
 				onlineList.find(">li[data-uid='" + data.uid + "']").html(data.newnick);
 				break;
 
@@ -166,7 +171,7 @@ function createConnection() {
 
 					for (var uid in data.onlineList) {
 						if (data.onlineList.hasOwnProperty(uid)) {
-							html += '<li data-uid="' + uid + '">' + data.onlineList[uid] + '</li>';
+							html += '<li data-uid="' + uid + '">' + getNick(data.onlineList[uid]) + '</li>';
 						}
 					}
 

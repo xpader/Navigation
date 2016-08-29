@@ -15,7 +15,7 @@ $worker->count = 1;
 $msgAutoId = 1;
 
 $worker->onConnect = function($connection) {
-	$connection->lastActive = time();
+	$connection->lastActive = microtime(true);
 	$connection->nickname = '';
 	$connection->uid = md5(rand(10000, 99999).'-'.$connection->id);
 
@@ -57,6 +57,14 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 
 	switch ($data['type']) {
 		case 'send':
+			$now = microtime(true);
+
+			//0.2秒内不能重复发送消息
+			if ($now - $connection->lastActive < 0.2) {
+				$res = ['type'=>'send', 'status'=>false, 'msg'=>'您发表的太快了,请休息一下吧', 'rnd'=>$data['rnd']];
+				break;
+			}
+
 			if (!isset($data['msg'])) {
 				$data['msg'] = '';
 			} else {
@@ -90,6 +98,10 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
                         $memoryReal = memory_get_usage(true);
                         $res['msg'] = "memory: $memory, real: $memoryReal";
                         break;
+	                
+	                case 'la':
+		                $res['msg'] = $connection->lastActive;
+		                break;
 
                     default:
                         $res['msg'] = "$command:未知命令";
@@ -108,7 +120,7 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
                 ]);
             }
 
-			$res = ['type'=>'send', 'status'=>'done', 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
+			$res = ['type'=>'send', 'status'=>true, 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
 			break;
 		
 		case 'ping':
@@ -151,7 +163,7 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 		$connection->send(json_encode($res, JSON_UNESCAPED_UNICODE));
 	}
 
-	$connection->lastActive = time();
+	$connection->lastActive = microtime(true);
 };
 
 function sendToAll($connection, $res, $includeSelf=false) {
