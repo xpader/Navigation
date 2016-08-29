@@ -31,12 +31,20 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .message {padding:0 10px;}
 .message-head {font-size:12px; color:#8193A9; margin-bottom:2px;}
 .message-nick {margin-right:7px;}
+.message-content {padding:8px; border-radius:8px; display:inline-block; position:relative; max-width:90%; word-wrap:break-word;}
+.message-content:before {display:block; width:0; height:0; content:"."; font-size:0; border:7px solid #2E476B; position:absolute; z-index:1; top:9px;}
+.message-receive .message-content {margin-left:7px; background-color:#416FB2;}
+.message-receive .message-content:before {left:-14px; border-right-color:#416FB2;}
 .message-send {text-align:right;}
+.message-send .message-content {margin-right:7px; background-color:#49658C;}
+.message-send .message-content:before {right:-14px; border-left-color:#49658C;}
+.message-content img {max-width:100%;}
 
 .online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px; overflow-y:auto;}
 .tech-desc {font-size:12px;}
 .tech-desc b {display:block; font-size:14px;}
 #onlineList li {margin-left:6px; list-style:disc inside;}
+
 .tool {position:absolute; height:50px; left:0; bottom:0; width:100%;}
 .tool textarea {height:100%; zoom:1; border:none; padding:5px;}
 .tool button {height:100%; width:50px; float:right; clear:right; display:block;}

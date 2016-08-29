@@ -16,6 +16,7 @@ function sendMsg() {
 
 	if ($.trim(text) == "") {
 		addTip("输入内容不可以为空或者纯空格");
+		input.focus();
 		return false;
 	}
 
