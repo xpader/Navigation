@@ -52,6 +52,8 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .tool-name-reg form {width:200px; margin:15px auto 0;}
 .reg-name {width:130px; margin:0; float:left;}
 .reg-btn {width:60px; padding:0; margin-left:5px;}
+
+#msgSound {display:none;}
 </style>
 </head>
 <body>
@@ -65,8 +67,8 @@ hr {border:none; height:1px; background-color:#5d7698;}
 			<p>Last pong <span id="lastActive">BEGIN</span> seconds ago.</p>
 			<hr/>
 			<div class="tech-desc">
-				<p><b>Websocket</b>Connection used</p>
-				<p><b>Ping -- Pong</b>Every 30 seconds</p>
+				<p><b>Websocket</b>Connection protocol</p>
+				<p><b>Navigation</b>PHP Web Framework</p>
 				<p><b>Workerman</b>PHP Socket Framework</p>
 			</div>
 			<hr/>
@@ -86,6 +88,9 @@ hr {border:none; height:1px; background-color:#5d7698;}
 	</div>
 </div>
 
+<audio controls="controls" id="msgSound">
+	<source src="/static/xchat.mp3" type="audio/mpeg">
+</audio>
 <script src="/static/lib/jquery-2.2.4.js"></script>
 <script src="/static/xchat.js"></script>
 </body>

@@ -1,5 +1,7 @@
-var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), onlineCount = $("#onlineCount"), onlineList = $("#onlineList"),
-	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn");
+var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"),
+	onlineCount = $("#onlineCount"), onlineList = $("#onlineList"),
+	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn"),
+	msgSound = document.getElementById("msgSound");
 var ws, lastActiveTime = now(), nickname = "";
 
 function now() {
@@ -122,6 +124,10 @@ function createConnection() {
 		switch (data.type) {
 			case "msg":
 				addMessage('msg' + data.id, data.time, getNick(data.nick), data.msg);
+
+				if (msgSound.error == null && msgSound.readyState >= 3) {
+					msgSound.play();
+				}
 				break;
 
 			case "send":
