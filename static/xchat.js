@@ -125,7 +125,7 @@ function createConnection() {
 			case "msg":
 				addMessage('msg' + data.id, data.time, getNick(data.nick), data.msg);
 
-				if (msgSound.error == null && msgSound.readyState >= 3) {
+				if (msgSound.error == null) {
 					msgSound.play();
 				}
 				break;
