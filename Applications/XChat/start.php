@@ -88,14 +88,14 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
                 switch ($command) {
                     case 'gc':
                         $gcNum = gc_collect_cycles();
-                        $memory = memory_get_usage();
-                        $memoryReal = memory_get_usage(true);
+                        $memory = byteFormat(memory_get_usage());
+                        $memoryReal = byteFormat(memory_get_usage(true));
                         $res['msg'] = "gc: $gcNum, memory: $memory, real: $memoryReal";
                         break;
 
                     case 'mem':
-                        $memory = memory_get_usage();
-                        $memoryReal = memory_get_usage(true);
+                        $memory = byteFormat(memory_get_usage());
+                        $memoryReal = byteFormat(memory_get_usage(true));
                         $res['msg'] = "memory: $memory, real: $memoryReal";
                         break;
 	                
@@ -103,8 +103,19 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 		                $res['msg'] = $connection->lastActive;
 		                break;
 
+	                case 'ko':
+						$kickCount = 0;
+		                foreach ($connection->worker->connections as $conn) {
+			                if ($conn->id != $connection->id) {
+				                $conn->destroy();
+				                ++$kickCount;
+			                }
+		                }
+		                $res['msg'] = "Kicked $kickCount connections";
+		                break;
+
                     default:
-                        $res['msg'] = "$command:未知命令";
+                        $res['msg'] = "$command:unknow command";
                 }
 
                 $connection->send(json_encode($res));
@@ -221,6 +232,12 @@ function cleanXss($string, $strict=true) {
 	$string = preg_replace('/(<\w+.*?)\s*?( \/>|>)/is', '\1\2', $string); //过滤标签尾部多余的空格
 
 	return $string;
+}
+
+function byteFormat($filesize) {
+	$units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+	$i = floor(log($filesize, 1024));
+	return $filesize ? number_format($filesize/pow(1024, $i), 2, '.', '') . $units[(int)$i] : '0 Bytes';
 }
 
 // 如果不是在根目录启动，则运行runAll方法
