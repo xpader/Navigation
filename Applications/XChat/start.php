@@ -127,7 +127,7 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 			                sendToAll($connection, $res, true);
 		                }
 						unset($res);
-	                    break;
+	                    break 2;
 	                
                     default:
                         $res['msg'] = "$command:unknow command";
