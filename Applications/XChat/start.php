@@ -232,9 +232,11 @@ function cleanXss($string, $strict=true) {
 	$string = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/S', '', $string);
 
 	$string = preg_replace('/<meta.+?>/is', '', $string); //过滤 meta 标签
+	$string = preg_replace('/<link.+?>/is', '', $string); //过滤 link 标签
 	$string = preg_replace('/<script.+?<\/script>/is', '', $string); //过滤 script 标签
 
 	if ($strict) {
+		$string = preg_replace('/<style.+?<\/style>/is', '', $string); //过滤 style 标签
 		$string = preg_replace('/<iframe.+?<\/iframe>/is', '', $string); //过滤 iframe 标签 1
 		$string = preg_replace('/<iframe.+?>/is', '', $string); //过滤 iframe 标签 2
 	}

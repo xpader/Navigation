@@ -71,7 +71,7 @@ function messageAppend(html, forceScroll) {
 	pop.data("listCount", listCount);
 
 	if (forceScroll) {
-		pop.animate({scrollTop:pop.prop("scrollHeight") - popHeight}, 150);
+		pop.animate({scrollTop:pop.prop("scrollHeight") - popHeight}, 250);
 	}
 }
 
