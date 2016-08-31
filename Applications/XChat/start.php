@@ -82,6 +82,13 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
             //隐藏命令
             if (substr($data['msg'], 0, 6) == 'xchat:') {
                 $command = substr($data['msg'], 6);
+	            $commandArg = '';
+	            
+	            //命令的剩余部分
+	            if (($pos = strpos($command, ':')) !== false) {
+		            $commandArg = substr($command, $pos+1);
+		            $command = substr($command, 0, $pos);
+	            }
 
                 $res = ['type' => 'error', 'msg' => ''];
 
@@ -113,7 +120,15 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 		                }
 		                $res['msg'] = "Kicked $kickCount connections";
 		                break;
-
+	                
+	                case 'tip':
+		                if (trim($commandArg) != '') {
+			                $res['msg'] = $commandArg;
+			                sendToAll($connection, $res, true);
+		                }
+						unset($res);
+	                    break;
+	                
                     default:
                         $res['msg'] = "$command:unknow command";
                 }

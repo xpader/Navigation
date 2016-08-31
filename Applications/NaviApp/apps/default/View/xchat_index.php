@@ -23,8 +23,8 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .main {position:absolute; left:0; top:0; bottom:50px; width:100%;}
 .main > * {height:100%;}
 
-.pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-bottom:15px;}
-.pop > li {margin-top:10px;}
+.pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-top:15px;}
+.pop > li {margin-bottom:15px;}
 .pop .tip {text-align:center;}
 .pop .tip span {background-color:#395276; color:#7B8AA1; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
 
@@ -36,7 +36,7 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .message-receive .message-content {margin-left:7px; background-color:#416FB2;}
 .message-receive .message-content:before {left:-14px; border-right-color:#416FB2;}
 .message-send {text-align:right;}
-.message-send .message-content {margin-right:7px; background-color:#49658C;}
+.message-send .message-content {margin-right:7px; background-color:#49658C; text-align:left;}
 .message-send .message-content:before {right:-14px; border-left-color:#49658C;}
 .message-content img {max-width:100%;}
 
@@ -64,22 +64,27 @@ hr {border:none; height:1px; background-color:#5d7698;}
 			<hr/>
 			<ul id="onlineList"></ul>
 			<hr/>
-			<p>Last pong <span id="lastActive">BEGIN</span> seconds ago.</p>
+			<div style="text-align:center;">
+				消息提醒<br>
+				<label><input type="checkbox" id="notiSound" value="1" checked />声音</label>
+				<label><input type="checkbox" id="notiTitle" value="1" checked />标题</label>
+			</div>
+			<hr/>
+			<p style="text-align:center;">ping....<span id="lastActive">*</span>....pong</p>
 			<hr/>
 			<div class="tech-desc">
 				<p><b>Websocket</b>Connection protocol</p>
 				<p><b>Navigation</b>PHP Web Framework</p>
 				<p><b>Workerman</b>PHP Socket Framework</p>
+				<p><a href="http://git.oschina.net/pader/Navigation" target="_blank">Git@OSC</a></p>
 			</div>
-			<hr/>
-			<p><a href="http://git.oschina.net/pader/Navigation" target="_blank">Git@OSC</a></p>
 		</div>
 		<ul class="pop"></ul>
 	</div>
 	<div class="tool" id="bottomArea">
 		<div class="tool-name-reg">
 			<form method="post">
-				<input type="text" name="mynick" value="" placeholder="输入昵称.." class="reg-name" autocomplete="off"/>
+				<input type="text" name="mynick" value="" placeholder="输入昵称.." class="reg-name" />
 				<input type="submit" value="开始聊天" class="reg-btn" />
 			</form>
 		</div>

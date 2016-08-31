@@ -1,8 +1,11 @@
 var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"),
 	onlineCount = $("#onlineCount"), onlineList = $("#onlineList"),
 	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn"),
-	msgSound = document.getElementById("msgSound");
-var ws, lastActiveTime = now(), nickname = "";
+	msgSound = document.getElementById("msgSound"), notiSound = $("#notiSound"), notiTitle = $("#notiTitle");
+
+var ws, lastActiveTime = now(), nickname = "",
+	hidden, visibilityChange, visibilityState = true,
+	origTitle = document.title, blink;
 
 function now() {
 	return parseInt((new Date()).getTime() / 1000);
@@ -68,7 +71,7 @@ function messageAppend(html, forceScroll) {
 	pop.data("listCount", listCount);
 
 	if (forceScroll) {
-		pop.animate({scrollTop:pop.prop("scrollHeight") - popHeight}, 100);
+		pop.animate({scrollTop:pop.prop("scrollHeight") - popHeight}, 150);
 	}
 }
 
@@ -125,8 +128,21 @@ function createConnection() {
 			case "msg":
 				addMessage('msg' + data.id, data.time, getNick(data.nick), data.msg);
 
-				if (msgSound.error == null) {
+				if (notiSound.prop("checked") && msgSound.error == null) {
 					msgSound.play();
+				}
+
+				if (!visibilityState && blink == null && notiTitle.prop("checked")) {
+					var blinkState = 0;
+					blink = setInterval(function() {
+						if (blinkState == 0) {
+							document.title = "新消息 - " + origTitle;
+							blinkState = 1;
+						} else {
+							document.title = origTitle;
+							blinkState = 0;
+						}
+					}, 1000);
 				}
 				break;
 
@@ -223,46 +239,72 @@ function adjustWindowSize() {
 	input.width(bottomArea.width() - sendBtn.outerWidth() - 10);
 }
 
-$(function(){
-	adjustWindowSize();
 
-	createConnection();
+adjustWindowSize();
 
-	//注册昵称
-	if (nickname == "") {
-		var nameReg = bottomArea.find(".tool-name-reg");
+createConnection();
 
-		nameReg.find("form").submit(function() {
-			if ($.trim(this.mynick.value) == "") {
-				addTip("请输入有效的昵称");
-				return false;
-			}
+//注册昵称
+if (nickname == "") {
+	var nameReg = bottomArea.find(".tool-name-reg");
 
-			ws.sendProxy("reg", {nick: this.mynick.value});
-			nickname = this.mynick.value;
-
-			return false;
-		});
-	}
-
-	sendBtn.click(sendMsg);
-
-	//回车时发送
-	input.keydown(function(e) {
-		if (e.keyCode == 13) {
+	nameReg.find("form").submit(function() {
+		if ($.trim(this.mynick.value) == "") {
+			addTip("请输入有效的昵称");
 			return false;
 		}
-	}).keyup(function(e) {
-		if (e.keyCode == 13) {
-			sendMsg();
-			return false;
-		}
+
+		ws.sendProxy("reg", {nick: this.mynick.value});
+		nickname = this.mynick.value;
+
+		return false;
 	});
+}
 
-	var pongViewTimer = setInterval(function() {
-		var ago = now() - lastActiveTime;
-		lastActive.text(ago);
-	}, 3500);
+sendBtn.click(sendMsg);
 
-	$(window).resize(adjustWindowSize);
+//回车时发送
+input.keydown(function(e) {
+	if (e.keyCode == 13) {
+		return false;
+	}
+}).keyup(function(e) {
+	if (e.keyCode == 13) {
+		sendMsg();
+		return false;
+	}
 });
+
+var pongViewTimer = setInterval(function() {
+	var ago = now() - lastActiveTime;
+	lastActive.text(ago);
+}, 3500);
+
+$(window).resize(adjustWindowSize);
+
+//Page visibility state
+if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
+	hidden = "hidden";
+	visibilityChange = "visibilitychange";
+} else if (typeof document.mozHidden !== "undefined") {
+	hidden = "mozHidden";
+	visibilityChange = "mozvisibilitychange";
+} else if (typeof document.msHidden !== "undefined") {
+	hidden = "msHidden";
+	visibilityChange = "msvisibilitychange";
+} else if (typeof document.webkitHidden !== "undefined") {
+	hidden = "webkitHidden";
+	visibilityChange = "webkitvisibilitychange";
+}
+
+if (document.addEventListener && typeof document[hidden] != "undefined") {
+	document.addEventListener(visibilityChange, function() {
+		visibilityState = !document[hidden];
+
+		if (blink != null) {
+			clearInterval(blink);
+			blink = null;
+			document.title = origTitle;
+		}
+	}, false);
+}
