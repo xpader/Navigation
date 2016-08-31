@@ -194,9 +194,17 @@ $worker->onMessage = function($connection, $data) use (&$msgAutoId) {
 
 function sendToAll($connection, $res, $includeSelf=false) {
 	$res = json_encode($res, JSON_UNESCAPED_UNICODE);
+
+	$expires = microtime(true) - 60;
 	
 	foreach ($connection->worker->connections as $conn) {
 		if (!$includeSelf && $conn->id == $connection->id) {
+			continue;
+		}
+		
+		//移除不活跃的链接
+		if ($conn->lastActive < $expires) {
+			$conn->close();
 			continue;
 		}
 		
