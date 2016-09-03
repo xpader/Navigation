@@ -26,7 +26,7 @@ class Explorer extends \Controller {
 
 	const VERSION = '1.5.2 (20160602)';
 	const DEFAULT_VIEWMODE = 'icon'; //默认目录列表类型 list|icon
-	const BASE_DIR = '/home/pader/Dev/www';
+	const BASE_DIR = 'E:';
 
 	//已知文件的类型对应的内嵌图标
 	private $types = array(

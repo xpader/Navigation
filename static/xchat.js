@@ -235,8 +235,8 @@ function createConnection() {
 }
 
 function adjustWindowSize() {
-	mainWrap.height($(window).height());
-	input.width(bottomArea.width() - sendBtn.outerWidth() - 10);
+	//mainWrap.height($(window).height());
+	//input.width(bottomArea.width() - 50 - 10);
 }
 
 

@@ -2,12 +2,14 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <title>XChat</title>
 <meta name="description" content="A simple chat room demo on websocket."/>
 <link rel="shortcut icon" type="image/x-icon" href="data:image/vnd.microsoft.icon;base64,AAABAAEAEA4AAAEAIADgAwAAFgAAACgAAAAQAAAAHAAAAAEAIAAAAAAAgAMAAPwnAAD8JwAAAAAAAAAAAABubGsAbmxrAG5sayZubGsXbmxrAG5sawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbmxrAG5sawBubGtLbmxrom5sa1RubGsZbmxrAW5sawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABubGsAbmxrEW5sa35ubGtObmxrcW5sa11ubGsobmxrHm5saxRubGsFbmxrAG5sawAAAAAAAAAAAAAAAAAAAAAAbmxrAG5sawBubGtfbmxrd25sax1ubGs5bmxrZW5sa2hubGtvbmxrcG5sa1NubGsZbmxrAG5sawAAAAAAbmxrAG5sawNubGtFbmxrd25sa0JubGsIbmxrAG5sawBubGsAbmxrBG5saxVubGtDbmxrdW5sa0RubGsCbmxrAG5sawBubGtHbmxrZ25saw1ubGsAbmxrAAAAAAAAAAAAAAAAAAAAAABubGsAbmxrAG5saw5ubGtnbmxrR25sawBubGscbmxrcW5saw1ubGsAbmxrAG5sawFubGsAbmxrAG5sawFubGsAbmxrAW5sawBubGsAbmxrDW5sa3FubGsdbmxrR25sa0xubGsAbmxrAG5sawhubGt3bmxrKG5sazZubGttbmxrGG5sa31ubGsYbmxrAG5sawBubGtLbmxrSW5sa05ubGtEbmxrAG5sawBubGsGbmxrWG5sax1ubGsnbmxrUW5saxFubGtdbmxrEW5sawBubGsAbmxrQ25sa1BubGssbmxrZ25sawJubGsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABubGsAbmxrAm5sa2dubGstbmxrA25sa2JubGtGbmxrAW5sawAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABubGsAbmxrAW5sa0ZubGtibmxrA25sawBubGsObmxraW5sa1xubGsYbmxrAW5sawAAAAAAAAAAAG5sawBubGsBbmxrGW5sa11ubGtobmxrDm5sawAAAAAAbmxrAG5sawdubGtBbmxrcW5sa2hubGtPbmxrQW5sa0FubGtQbmxraG5sa3BubGs/bmxrBm5sawAAAAAAAAAAAAAAAABubGsAbmxrAG5sawhubGsobmxrRm5sa1RubGtUbmxrRW5saydubGsIbmxrAG5sawAAAAAAAAAAAIf/AADB/wAAwB8AAOAHAACDAQAAj/EAABgIAAAwDAAAMAwAAB/4AAAP8AAAg8EAAMADAADwDwAA">
 <style type="text/css">
 html, body, ul, li {margin:0; padding:0;}
 ul, li {list-style:none;}
+html, body {height:100%;}
 body {background-color:#203656; color:#D5D5D5; font-size:14px; font-family:Helvetica Neue, Helvetica, Arial, PingFang SC, Hiragino Sans GB, WenQuanYi Micro Hei, Microsoft Yahei, sans-serif; overflow:hidden;}
 /*::-webkit-scrollbar-track-piece {background-color: rgba(255,255,255,0.2);}*/
 ::-webkit-scrollbar {width:5px; height:10px;}
@@ -19,7 +21,7 @@ a:hover {color:#0c00ff;}
 a:visited {color:#807ea9;}
 hr {border:none; height:1px; background-color:#5d7698;}
 
-.wrap {position:relative; max-width:600px; margin:0 auto; background-color:#2E476B;}
+.wrap {position:relative; max-width:600px; margin:0 auto; background-color:#2E476B; height:100%;}
 .main {position:absolute; left:0; top:0; bottom:50px; width:100%;}
 .main > * {height:100%;}
 
@@ -27,6 +29,9 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .pop > li {margin-bottom:15px;}
 .pop .tip {text-align:center;}
 .pop .tip span {background-color:#395276; color:#7B8AA1; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
+.pop::-webkit-scrollbar-thumb {background-color:transparent;}
+.pop:hover::-webkit-scrollbar-thumb {background-color:rgba(110, 135, 171, 0.5);}
+.pop::-webkit-scrollbar-thumb:hover {background-color:rgb(110, 135, 171);}
 
 .message {padding:0 10px;}
 .message-head {font-size:12px; color:#8193A9; margin-bottom:2px;}
@@ -45,9 +50,9 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .tech-desc b {display:block; font-size:14px;}
 #onlineList li {margin-left:6px; list-style:disc inside;}
 
-.tool {position:absolute; height:50px; left:0; bottom:0; width:100%;}
-.tool textarea {height:100%; zoom:1; border:none; padding:5px;}
-.tool button {height:100%; width:50px; float:right; clear:right; display:block;}
+.tool {position:absolute; height:50px; left:0; bottom:0; width:100%; background-color:#FFF;}
+.tool textarea {height:100%; width:100%; padding:5px 50px 5px 5px; border:none; border-radius:0; resize:none; background-color:transparent; float:left;}
+.tool button {height:46px; width:46px; float:left; margin:2px 0 0 -50px; display:block; background-color:#D3D3D3; -webkit-appearance:none; border-radius:3px; border:none; font-weight:bold; color: #818181;}
 .tool-name-reg {position:absolute; z-index:1; left:0; bottom:0; height:100%; width:100%; background-color:#7a92b5;}
 .tool-name-reg form {width:200px; margin:15px auto 0;}
 .reg-name {width:130px; margin:0; float:left;}
@@ -88,8 +93,8 @@ hr {border:none; height:1px; background-color:#5d7698;}
 				<input type="submit" value="开始聊天" class="reg-btn" />
 			</form>
 		</div>
-		<button type="button" id="sendBtn">发送</button>
 		<textarea id="sendText" placeholder="输入要发送的内容.."></textarea>
+		<button type="button" id="sendBtn">发送</button>
 	</div>
 </div>
 
