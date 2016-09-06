@@ -58,6 +58,7 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .reg-name {width:130px; margin:0; float:left;}
 .reg-btn {width:60px; padding:0; margin-left:5px;}
 
+.statusbar {position:absolute; z-index:1; text-align:center; background-color:rgba(243, 212, 126, 0.74); width:100%; bottom:50px; color:#1a2a42; padding:5px 0; display:none;}
 #msgSound {display:none;}
 </style>
 </head>
@@ -86,6 +87,7 @@ hr {border:none; height:1px; background-color:#5d7698;}
 		</div>
 		<ul class="pop"></ul>
 	</div>
+	<div class="statusbar">这里是状态</div>
 	<div class="tool" id="bottomArea">
 		<div class="tool-name-reg">
 			<form method="post">

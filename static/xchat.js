@@ -1,4 +1,4 @@
-var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"),
+var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), statusBar = mainWrap.find("> .statusbar"),
 	onlineCount = $("#onlineCount"), onlineList = $("#onlineList"),
 	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn"),
 	msgSound = document.getElementById("msgSound"), notiSound = $("#notiSound"), notiTitle = $("#notiTitle");
@@ -13,14 +13,14 @@ function now() {
 
 function sendMsg() {
 	if (ws == null) {
-		addTip("与服务器连接失败,无法发送消息");
+		showStatus("与服务器连接失败,无法发送消息");
 		return false;
 	}
 
 	var text = input.val();
 
 	if ($.trim(text) == "") {
-		addTip("输入内容不可以为空或者纯空格");
+		showStatus("输入内容不可以为空或者纯空格", true);
 		input.focus();
 		return false;
 	}
@@ -80,7 +80,7 @@ function checkNickname() {
 		nickname = prompt("请先设置一个昵称:");
 
 		if ($.trim(nickname) == "") {
-			addTip("必须设置一个有效的昵称才能发送消息");
+			showStatus("必须设置一个有效的昵称才能发送消息", true);
 			return false;
 		}
 	}
@@ -88,6 +88,25 @@ function checkNickname() {
 
 function getNick(nick) {
 	return nick ? nick : '路人甲';
+}
+
+function showStatus(text, afterHide) {
+	statusBar.text(text).show();
+
+	if (afterHide) {
+		//默认两秒后隐藏
+		if (afterHide === true) {
+			afterHide = 2000;
+		}
+
+		setTimeout(function() {
+			statusBar.fadeOut("fast");
+		}, afterHide);
+	}
+}
+
+function hideStatus() {
+	statusBar.fadeOut("fast");
 }
 
 function createConnection() {
@@ -112,8 +131,9 @@ function createConnection() {
 	};
 
 	ws.onopen = function(event) {
-		addTip("已建立连接");
+		showStatus("已建立连接", true);
 
+		//注册名称
 		if (nickname != "") {
 			this.sendProxy("reg", {nick: nickname});
 		}
@@ -200,7 +220,7 @@ function createConnection() {
 
 					onlineList.html(html);
 				} else {
-					addTip(data.msg);
+					showStatus(data.msg, true);
 				}
 				break;
 
@@ -216,7 +236,7 @@ function createConnection() {
 	ws.onclose = function() {
 		ws.clearPing();
 		ws = null;
-		addTip("连接已断开，正在重连..");
+		showStatus("连接已断开，正在重连..");
 		setTimeout(createConnection, 3000)
 	};
 
@@ -250,7 +270,7 @@ if (nickname == "") {
 
 	nameReg.find("form").submit(function() {
 		if ($.trim(this.mynick.value) == "") {
-			addTip("请输入有效的昵称");
+			showStatus("请输入有效的昵称", true);
 			return false;
 		}
 
