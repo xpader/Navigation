@@ -12,7 +12,17 @@ $worker = new Worker('websocket://0.0.0.0:8100');
 $worker->name = 'xchat-server';
 $worker->count = 1;
 
-$msgAutoId = 1;
+/**
+ * @var $worker->db PDO
+ */
+
+$worker->onWorkerStart = function($worker) {
+	$worker->db = new PDO('sqlite:'.__DIR__.'/data/xchat.db');
+};
+
+$worker->onWorkerStop = function($worker) {
+	$worker->db = null;
+};
 
 $worker->onConnect = function($connection) {
 	$connection->lastActive = microtime(true);
@@ -42,150 +52,31 @@ $worker->onClose = function($connection) {
 	]);
 };
 
+$message = new \Applications\XChat\Message;
+
 /**
  * @param \Workerman\Connection\TcpConnection $connection
  * @param mixed $data
  */
-$worker->onMessage = function($connection, $data) use (&$msgAutoId) {
+$worker->onMessage = function($connection, $data) use ($message) {
 	$data = @json_decode($data, true);
 
-	if (!is_array($data)) {
+	if (!is_array($data) || !isset($data['type'])) {
 		$res = ['type'=>'error', 'msg'=>'数据格式错误'];
 		$connection->send(json_encode($res));
 		return;
 	}
 
-	switch ($data['type']) {
-		case 'send':
-			$now = microtime(true);
-
-			//0.2秒内不能重复发送消息
-			if ($now - $connection->lastActive < 0.2) {
-				$res = ['type'=>'send', 'status'=>false, 'msg'=>'您发表的太快了,请休息一下吧', 'rnd'=>$data['rnd']];
-				break;
-			}
-
-			if (!isset($data['msg'])) {
-				$data['msg'] = '';
-			} else {
-				$data['msg'] = cleanXss($data['msg']);
-			}
-
-			if (!isset($data['rnd'])) {
-				$data['rnd'] = '0';
-			}
-
-			$time = date('Y-m-d H:i:s');
-			$msgId = $msgAutoId;
-			++$msgAutoId;
-
-            //隐藏命令
-            if (substr($data['msg'], 0, 6) == 'xchat:') {
-                $command = substr($data['msg'], 6);
-	            $commandArg = '';
-	            
-	            //命令的剩余部分
-	            if (($pos = strpos($command, ':')) !== false) {
-		            $commandArg = substr($command, $pos+1);
-		            $command = substr($command, 0, $pos);
-	            }
-
-                $res = ['type' => 'error', 'msg' => ''];
-
-                switch ($command) {
-                    case 'gc':
-                        $gcNum = gc_collect_cycles();
-                        $memory = byteFormat(memory_get_usage());
-                        $memoryReal = byteFormat(memory_get_usage(true));
-                        $res['msg'] = "gc: $gcNum, memory: $memory, real: $memoryReal";
-                        break;
-
-                    case 'mem':
-                        $memory = byteFormat(memory_get_usage());
-                        $memoryReal = byteFormat(memory_get_usage(true));
-                        $res['msg'] = "memory: $memory, real: $memoryReal";
-                        break;
-	                
-	                case 'la':
-		                $res['msg'] = $connection->lastActive;
-		                break;
-
-	                case 'ko':
-						$kickCount = 0;
-		                foreach ($connection->worker->connections as $conn) {
-			                if ($conn->id != $connection->id) {
-				                $conn->destroy();
-				                ++$kickCount;
-			                }
-		                }
-		                $res['msg'] = "Kicked $kickCount connections";
-		                break;
-	                
-	                case 'tip':
-		                if (trim($commandArg) != '') {
-			                $res['msg'] = $commandArg;
-			                sendToAll($connection, $res, true);
-		                }
-						unset($res);
-	                    break 2;
-	                
-                    default:
-                        $res['msg'] = "$command:unknow command";
-                }
-
-                $connection->send(json_encode($res));
-
-            } else {
-                sendToAll($connection, [
-                    'type' => 'msg',
-                    'nick' => $connection->nickname,
-                    'msg' => $data['msg'],
-                    'id' => $msgId,
-                    'uid' => $connection->uid,
-                    'time' => $time
-                ]);
-            }
-
-			$res = ['type'=>'send', 'status'=>true, 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
-			break;
-		
-		case 'ping':
-			$res = ['type'=>'pong', 'time'=>time()];
-			break;
-		
-		case 'reg':
-			if (!isset($data['nick']) || trim($data['nick'] == '')) {
-				$res = ['type'=>'error', 'msg'=>'昵称不能为空'];
-				break;
-			}
-
-			$data['nick'] = cleanXss($data['nick']);
-
-			$oldNickname = $connection->nickname;
-			$connection->nickname = $data['nick'];
-
-			sendToAll($connection, [
-				'type' => 'rename',
-				'oldnick' => $oldNickname,
-				'newnick' => $data['nick'],
-				'uid' => $connection->uid
-			]);
-
-			//在线用户列表
-			$list = [];
-
-			foreach ($connection->worker->connections as $conn) {
-				$list[$conn->uid] = $conn->nickname;
-			}
-			
-			$res = ['type'=>'reg', 'status'=>'done', 'nick'=>$data['nick'], 'onlineList'=>$list];
-			break;
-		
-		default:
-			$res = ['type'=>'error', 'msg'=>'数据格式错误'];
+	//调用消息
+	$call = [$message, $data['type']];
+	
+	if (is_callable($call)) {
+		$res = call_user_func_array($call, [$connection, $data]);
+	} else {
+		$res = ['type'=>'error', 'msg'=>'数据格式错误'];
 	}
 
-	if (isset($res)) {
+	if (isset($res) && is_array($res)) {
 		$connection->send(json_encode($res, JSON_UNESCAPED_UNICODE));
 	}
 
