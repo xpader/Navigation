@@ -36,13 +36,16 @@ function sendMsg() {
 	}, 0);
 }
 
-function addMessage(id, time, nick, content, type) {
+function buildMessageHtml(id, time, nick, content, type) {
 	var className = (!type || type == 0) ? "message-receive" : "message-send";
-	var html = '<li class="message ' + className + '" id="' + id + '">'
+	return '<li class="message ' + className + '" id="' + id + '">'
 		+ '<div class="message-head">'
 		+ '<span class="message-nick">' + nick + '</span><span class="message-time">' + time + '</span>'
 		+ '</div><div class="message-content">' + content + '</div></li>';
+}
 
+function addMessage(id, time, nick, content, type) {
+	var html = buildMessageHtml(id, time, nick, content, type);
 	messageAppend(html, type == 1);
 }
 
@@ -50,7 +53,7 @@ function addTip(content) {
 	messageAppend('<li class="tip"><span>' + content + '</span></li>');
 }
 
-function messageAppend(html, forceScroll) {
+function messageAppend(html, forceScroll, prepend) {
 	//是否需要滚动
 	var popHeight = pop.innerHeight();
 
@@ -59,7 +62,11 @@ function messageAppend(html, forceScroll) {
 		forceScroll = (pop.prop("scrollHeight") - (pop.scrollTop() + popHeight) < 50);
 	}
 
-	pop.append(html);
+	if (prepend) {
+		pop.prepend(html);
+	} else {
+		pop.append(html);
+	}
 
 	var listCount = parseInt(pop.data("listCount") || 0) + 1;
 
@@ -263,6 +270,20 @@ function adjustWindowSize() {
 adjustWindowSize();
 
 createConnection();
+
+//加载历史记录
+$.getJSON("/xchat/getHistory", function(history) {
+	var html = '';
+
+	for (var i=0,row; row=history[i]; i++) {
+		html += buildMessageHtml('msg' + row.id, row.time, row.nickname, row.msg);
+	}
+
+	if (html != '') {
+		html += '<li class="split"><span>以上是历史消息</span></li>';
+		messageAppend(html, true, true);
+	}
+});
 
 //注册昵称
 if (nickname == "") {

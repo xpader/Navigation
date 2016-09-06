@@ -29,6 +29,7 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .pop > li {margin-bottom:15px;}
 .pop .tip {text-align:center;}
 .pop .tip span {background-color:#395276; color:#7B8AA1; border-radius:5px; padding:2px 5px; font-size:10px; display:inline-block;}
+.pop .split {text-align:center; border-bottom:1px solid #566d8e; color:#828282; font-size:10px; margin:0 15px 15px; padding-bottom:3px;}
 .pop::-webkit-scrollbar-thumb {background-color:transparent;}
 .pop:hover::-webkit-scrollbar-thumb {background-color:rgba(110, 135, 171, 0.5);}
 .pop::-webkit-scrollbar-thumb:hover {background-color:rgb(110, 135, 171);}
