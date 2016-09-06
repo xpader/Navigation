@@ -25,22 +25,6 @@ class Message {
 		$timestamp = time();
 		$time = date('Y-m-d H:i:s', $timestamp);
 
-		/**
-		 * 保存到数据库
-		 *
-		 * @var $db \PDO
-		 */
-		$db = $connection->worker->db;
-		$sth = $db->prepare("INSERT INTO messages (`nickname`, `time`, `msg`, `uid`, `ip`) VALUES(?, ?, ?, ?, ?)");
-
-		if ($sth) {
-			$sth->execute([$connection->nickname, $timestamp, $data['msg'], $connection->uid, $connection->getRemoteIp()]);
-			$msgId = $db->lastInsertId();
-		} else {
-			$errorInfo = $db->errorInfo();
-			return ['type'=>'send', 'status'=>false, 'rnd'=>$data['rnd'], 'time'=>$time, 'msg'=>"数据保存失败:[{$errorInfo[0]}]{$errorInfo[2]}"];
-		}
-
 		//隐藏命令
 		if (substr($data['msg'], 0, 6) == 'xchat:') {
 			$command = substr($data['msg'], 6);
@@ -97,6 +81,22 @@ class Message {
 			$connection->send(json_encode($res));
 
 		} else {
+			/**
+			 * 保存到数据库
+			 *
+			 * @var $db \PDO
+			 */
+			$db = $connection->worker->db;
+			$sth = $db->prepare("INSERT INTO messages (`nickname`, `time`, `msg`, `uid`, `ip`) VALUES(?, ?, ?, ?, ?)");
+
+			if ($sth) {
+				$sth->execute([$connection->nickname, $timestamp, $data['msg'], $connection->uid, $connection->getRemoteIp()]);
+				$msgId = $db->lastInsertId();
+			} else {
+				$errorInfo = $db->errorInfo();
+				return ['type'=>'send', 'status'=>false, 'rnd'=>$data['rnd'], 'time'=>$time, 'msg'=>"数据保存失败:[{$errorInfo[0]}]{$errorInfo[2]}"];
+			}
+			
 			sendToAll($connection, [
 				'type' => 'msg',
 				'nick' => $connection->nickname,
