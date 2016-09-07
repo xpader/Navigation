@@ -120,7 +120,6 @@ class Message {
 									if ($conn->uid == $args[0]) {
 										$ip = $conn->getRemoteIp();
 										$info .= "<br>Nickname: {$conn->nickname}<br>IP: $ip";
-										$conn->close();
 										break;
 									}
 								}
