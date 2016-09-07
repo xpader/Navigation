@@ -2,11 +2,9 @@
 
 namespace Applications\XChat;
 
-use Workerman\Events\Libevent;
-
 class Message {
 	
-	public function send($connection, $data) {
+	public static function send($connection, $data) {
 		global $config;
 		
 		$now = microtime(true);
@@ -104,7 +102,7 @@ class Message {
 											$msg['close'] = 1;
 										}
 
-										$conn->close(json_encode($msg));
+										$conn->close(dpack($msg));
 										$kickedNick = $conn->nickname;
 										break;
 									}
@@ -131,16 +129,40 @@ class Message {
 							$res['msg'] = $info;
 							break;
 
-						case 'addblacklist':
-							global $blackList;
+						case 'banip':
+							global $ipBlackList;
 							
-							if ($args[0]) {
-								if (!in_array($args[0], $blackList)) {
-									$blackList[] = $args[0];
+							if ($args[0] && !in_array($args[0], $ipBlackList)) {
+								$ipBlackList[] = $args[0];
+
+								if (Data::addBlacklistIp($args[0])) {
+									$res['msg'] = join('<br>', $ipBlackList);
+								} else {
+									$res['msg'] = '数据保存失败: ' . Data::getError();
+								}
+
+								//踢出所有在该IP下的连接
+								$banConnections = Data::getConnectionsByIp($args[0]);
+
+								foreach ($banConnections as $row) {
+									if (isset($connection->worker->connections[$row['id']])) {
+										$connection->worker->connections[$row['id']]->destroy();
+									}
 								}
 							}
-							
-							$res['msg'] = join('<br>', $blackList);
+							break;
+
+						case 'allowip':
+							global $ipBlackList;
+
+							if ($args[0]) {
+								if (Data::removeBlacklistIp($args[0])) {
+									$ipBlackList = Data::getIpBlackList();
+									$res['msg'] = join('<br>', $ipBlackList);
+								} else {
+									$res['msg'] = '移除黑名单失败: ' . Data::getError();
+								}
+							}
 							break;
 						
 						default:
@@ -151,26 +173,16 @@ class Message {
 				}
 			}
 			
-			$connection->send(json_encode($res, JSON_UNESCAPED_UNICODE));
+			$connection->send(dpack($res));
 			
 			$msgId = 0;
 
 		} else {
-			
-			/**
-			 * 保存到数据库
-			 *
-			 * @var $db \PDO
-			 */
-			$db = $connection->worker->db;
-			$sth = $db->prepare("INSERT INTO messages (`nickname`, `time`, `msg`, `uid`, `ip`) VALUES(?, ?, ?, ?, ?)");
+			//保存到数据库
+			$msgId = Data::addMessage($connection->uid, $connection->nickname, $data['msg'], $timestamp, $connection->getRemoteIp());
 
-			if ($sth) {
-				$sth->execute([$connection->nickname, $timestamp, $data['msg'], $connection->uid, $connection->getRemoteIp()]);
-				$msgId = $db->lastInsertId();
-			} else {
-				$errorInfo = $db->errorInfo();
-				return ['type'=>'send', 'status'=>false, 'rnd'=>$data['rnd'], 'time'=>$time, 'msg'=>"数据保存失败:[{$errorInfo[0]}]{$errorInfo[2]}"];
+			if ($msgId === false) {
+				return ['type'=>'send', 'status'=>false, 'rnd'=>$data['rnd'], 'time'=>$time, 'msg'=>'数据保存失败: '.Data::getError()];
 			}
 			
 			sendToAll($connection, [
@@ -186,7 +198,7 @@ class Message {
 		return ['type'=>'send', 'status'=>true, 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
 	}
 	
-	public function reg($connection, $data) {
+	public static function reg($connection, $data) {
 		if (!isset($data['nick']) || trim($data['nick'] == '')) {
 			return ['type'=>'error', 'msg'=>'昵称不能为空'];
 		}
@@ -213,7 +225,7 @@ class Message {
 		return ['type'=>'reg', 'status'=>'done', 'nick'=>$data['nick'], 'onlineList'=>$list];
 	}
 	
-	public function ping() {
+	public static function ping() {
 		return ['type'=>'pong', 'time'=>time()];
 	}
 	

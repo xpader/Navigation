@@ -3,7 +3,7 @@ var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), statusBar 
 	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn"),
 	msgSound = document.getElementById("msgSound"), notiSound = $("#notiSound"), notiTitle = $("#notiTitle");
 
-var ws, lastActiveTime = now(), nickname = "",
+var ws, lastActiveTime = now(), nickname = "", uid,
 	hidden, visibilityChange, visibilityState = true,
 	origTitle = document.title, blink;
 
@@ -196,7 +196,9 @@ function createConnection() {
 					onlineList.find(">li[data-uid='" + data.uid + "']").remove();
 				}
 
-				addTip(nick + " " + (data.way == "in" ? "进入" : "离开") + '了房间');
+				if (data.uid != window.uid) {
+					addTip(nick + " " + (data.way == "in" ? "进入" : "离开") + '了房间');
+				}
 				break;
 
 			case "rename":
@@ -206,6 +208,10 @@ function createConnection() {
 
 			case "pong":
 				lastActiveTime = now();
+				break;
+
+			case "baseinfo":
+				window.uid = data.uid;
 				break;
 
 			case "reg":

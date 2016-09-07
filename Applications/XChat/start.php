@@ -1,6 +1,7 @@
 <?php
 use \Workerman\Worker;
 use \Workerman\Autoloader;
+use \Applications\XChat\Data;
 
 // 非全局启动则自己加载 Workerman 的 Autoloader
 if (!defined('GLOBAL_START')) {
@@ -12,25 +13,34 @@ $worker = new Worker('websocket://0.0.0.0:8100');
 $worker->name = 'xchat-server';
 $worker->count = 1;
 
-$blackList = [];
+/**
+ * IP 黑名单列表
+ */
+$ipBlackList = [];
 
 /**
  * @var $worker->db PDO
  */
 
 $worker->onWorkerStart = function($worker) {
-	$worker->db = new PDO('sqlite:'.__DIR__.'/data/xchat.db');
-};
+    global $ipBlackList;
 
-$worker->onWorkerStop = function($worker) {
-	$worker->db = null;
+	Data::init();
+	Data::clearConnections();
+
+	$ipBlackList = Data::getIpBlackList();
+
+	if ($ipBlackList === false) {
+		echo '读取黑名单失败: '.Data::getError();
+		$ipBlackList = [];
+	}
 };
 
 $worker->onConnect = function($connection) {
-	global $blackList;
+	global $ipBlackList;
 
-	if (in_array($connection->getRemoteIp(), $blackList)) {
-		$connection->close();
+	if (in_array($connection->getRemoteIp(), $ipBlackList)) {
+		$connection->destroy();
 		return;
 	}
 	
@@ -39,47 +49,56 @@ $worker->onConnect = function($connection) {
 	$connection->lastActive = time(); //最后活跃时间
 	$connection->lastSend = microtime(true); //最后发送消息时间
 
+	Data::addConnection($connection);
+
+	$connection->send(dpack(['type'=>'baseinfo', 'uid'=>$connection->uid]));
+
 	$onlineCount = count($connection->worker->connections);
 	
 	sendToAll($connection, [
-		'type'=>'online_count',
-		'nick'=>$connection->nickname,
-		'num'=>$onlineCount,
-		'way'=>'in',
-		'uid'=>$connection->uid
-	]);
+		'type' => 'online_count',
+		'nick' => $connection->nickname,
+		'num' => $onlineCount,
+		'way' => 'in',
+		'uid' => $connection->uid
+	], true);
 };
 
 $worker->onClose = function($connection) {
+	if (!isset($connection->uid)) {
+		return;
+	}
+
+	Data::removeConnection($connection->id);
+
 	$onlineCount = count($connection->worker->connections);
 	
 	sendToAll($connection, [
-		'type'=>'online_count',
-		'nick'=>$connection->nickname,
-		'num'=>$onlineCount,
-		'way'=>'leave',
-		'uid'=>$connection->uid
+		'type' => 'online_count',
+		'nick' => $connection->nickname,
+		'num' => $onlineCount,
+		'way' => 'leave',
+		'uid' => $connection->uid
 	]);
 };
 
 require __DIR__.'/config.php';
-$message = new \Applications\XChat\Message;
 
 /**
  * @param \Workerman\Connection\TcpConnection $connection
  * @param mixed $data
  */
-$worker->onMessage = function($connection, $data) use ($message) {
+$worker->onMessage = function($connection, $data) {
 	$data = @json_decode($data, true);
 
 	if (!is_array($data) || !isset($data['type'])) {
 		$res = ['type'=>'error', 'msg'=>'数据格式错误'];
-		$connection->send(json_encode($res));
+		$connection->send(dpack($res));
 		return;
 	}
 
 	//调用消息
-	$call = [$message, $data['type']];
+	$call = '\Applications\XChat\Message::'.$data['type'];
 	
 	if (is_callable($call)) {
 		$res = call_user_func_array($call, [$connection, $data]);
@@ -88,14 +107,21 @@ $worker->onMessage = function($connection, $data) use ($message) {
 	}
 
 	if (isset($res) && is_array($res)) {
-		$connection->send(json_encode($res, JSON_UNESCAPED_UNICODE));
+		$connection->send(dpack($res, JSON_UNESCAPED_UNICODE));
 	}
 
 	$connection->lastActive = time();
 };
 
+/**
+ * 将数据发送给所有连接
+ *
+ * @param \Workerman\Connection\TcpConnection $connection 当前连接
+ * @param array $res
+ * @param bool $includeSelf 是否发送给自己，默认不发
+ */
 function sendToAll($connection, $res, $includeSelf=false) {
-	$res = json_encode($res, JSON_UNESCAPED_UNICODE);
+	$res = dpack($res);
 
 	$expires = time() - 60;
 	
@@ -112,6 +138,16 @@ function sendToAll($connection, $res, $includeSelf=false) {
 		
 		$conn->send($res);
 	}
+}
+
+/**
+ * 代理数据格式封装
+ *
+ * @param array $data
+ * @return string
+ */
+function dpack($data) {
+	return json_encode($data, JSON_UNESCAPED_UNICODE);
 }
 
 /**
