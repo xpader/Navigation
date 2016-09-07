@@ -5,6 +5,8 @@ namespace Applications\XChat;
 class Message {
 	
 	public function send($connection, $data) {
+		global $config;
+		
 		$now = microtime(true);
 
 		//0.2秒内不能重复发送消息
@@ -12,11 +14,12 @@ class Message {
 			return ['type'=>'send', 'status'=>false, 'msg'=>'您发表的太快了,请休息一下吧', 'rnd'=>$data['rnd']];
 		}
 
-		if (!isset($data['msg'])) {
-			$data['msg'] = '';
-		} else {
-			$data['msg'] = cleanXss($data['msg']);
+		//必须有昵称
+		if ($connection->nickname == '') {
+			return ['type'=>'send', 'status'=>false, 'msg'=>'您还没有昵称,无法发送消息', 'rnd'=>$data['rnd']];
 		}
+		
+		$data['msg'] = isset($data['msg']) ? cleanXss($data['msg']) : '';
 
 		if (!isset($data['rnd'])) {
 			$data['rnd'] = '0';
@@ -37,50 +40,90 @@ class Message {
 			}
 
 			$res = ['type' => 'error', 'msg' => ''];
+			
+			if ($command == 'setmeadmin') {
+				if ($commandArg == $config['admin_password']) {
+					$connection->isAdmin = true;
+					$res['msg'] = '已成功提升为管理员';
+				} else {
+					$res['msg'] = '密码错误';
+				}
+				
+			} else {
+				if (isset($connection->isAdmin) && $connection->isAdmin) {
+					switch ($command) {
+						case 'gc':
+							$gcNum = gc_collect_cycles();
+							$memory = byteFormat(memory_get_usage());
+							$memoryReal = byteFormat(memory_get_usage(true));
+							$res['msg'] = "gc: $gcNum, memory: $memory, real: $memoryReal";
+							break;
 
-			switch ($command) {
-				case 'gc':
-					$gcNum = gc_collect_cycles();
-					$memory = byteFormat(memory_get_usage());
-					$memoryReal = byteFormat(memory_get_usage(true));
-					$res['msg'] = "gc: $gcNum, memory: $memory, real: $memoryReal";
-					break;
+						case 'mem':
+							$memory = byteFormat(memory_get_usage());
+							$memoryReal = byteFormat(memory_get_usage(true));
+							$res['msg'] = "memory: $memory, real: $memoryReal";
+							break;
 
-				case 'mem':
-					$memory = byteFormat(memory_get_usage());
-					$memoryReal = byteFormat(memory_get_usage(true));
-					$res['msg'] = "memory: $memory, real: $memoryReal";
-					break;
+						case 'la':
+							$res['msg'] = $connection->lastActive;
+							break;
 
-				case 'la':
-					$res['msg'] = $connection->lastActive;
-					break;
+						case 'ko':
+							$kickCount = 0;
+							foreach ($connection->worker->connections as $conn) {
+								if ($conn->id != $connection->id) {
+									$conn->destroy();
+									++$kickCount;
+								}
+							}
+							$res['msg'] = "Kicked $kickCount connections";
+							break;
 
-				case 'ko':
-					$kickCount = 0;
-					foreach ($connection->worker->connections as $conn) {
-						if ($conn->id != $connection->id) {
-							$conn->destroy();
-							++$kickCount;
-						}
+						case 'tip':
+							if (trim($commandArg) != '') {
+								$res['msg'] = $commandArg;
+								sendToAll($connection, $res, true);
+							}
+							return;
+
+						case 'kick':
+							$kickedNick = '';
+							$args = explode(':', $commandArg);
+
+							if ($args[0]) {
+								foreach ($connection->worker->connections as $conn) {
+									if ($conn->uid == $args[0]) {
+										$msg = ['type'=>'out'];
+
+										if ($args[1]) {
+											$msg['close'] = 1;
+										}
+
+										$conn->send(json_encode($msg));
+										$kickedNick = $conn->nickname;
+										break;
+									}
+								}
+							}
+
+							$res['msg'] = "Kicked $kickedNick";
+							break;
+
+						default:
+							$res['msg'] = "$command:unknow command";
 					}
-					$res['msg'] = "Kicked $kickCount connections";
-					break;
-
-				case 'tip':
-					if (trim($commandArg) != '') {
-						$res['msg'] = $commandArg;
-						sendToAll($connection, $res, true);
-					}
-					return;
-
-				default:
-					$res['msg'] = "$command:unknow command";
+				} else {
+					$res['msg'] = '你不是管理员,无法发送命令';
+				}
 			}
-
-			$connection->send(json_encode($res));
+			
+			$connection->send(json_encode($res, JSON_UNESCAPED_UNICODE));
+			
+			$msgId = 0;
 
 		} else {
+			
 			/**
 			 * 保存到数据库
 			 *
@@ -106,7 +149,7 @@ class Message {
 				'time' => $time
 			]);
 		}
-
+		
 		return ['type'=>'send', 'status'=>true, 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
 	}
 	

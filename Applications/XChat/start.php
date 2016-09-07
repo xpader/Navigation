@@ -52,6 +52,7 @@ $worker->onClose = function($connection) {
 	]);
 };
 
+require __DIR__.'/config.php';
 $message = new \Applications\XChat\Message;
 
 /**

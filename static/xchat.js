@@ -124,7 +124,7 @@ function createConnection() {
 
 	ws = new WebSocket("ws://" + location.hostname + ":8100");
 
-	var pingTimer = null;
+	var pingTimer = null, autoReconnect = true;
 
 	ws.setPing = function() {
 		pingTimer = setTimeout(function() {
@@ -231,6 +231,17 @@ function createConnection() {
 				}
 				break;
 
+			case "out":
+				autoReconnect = false;
+				ws.close();
+
+				if (data.close) {
+					location.href = "https://www.baidu.com/";
+				} else {
+					showStatus("您已被踢出");
+				}
+				break;
+
 			case "error":
 				addTip(data.msg);
 				break;
@@ -243,8 +254,11 @@ function createConnection() {
 	ws.onclose = function() {
 		ws.clearPing();
 		ws = null;
-		showStatus("连接已断开，正在重连..");
-		setTimeout(createConnection, 3000)
+
+		if (autoReconnect) {
+			showStatus("连接已断开，正在重连..");
+			setTimeout(createConnection, 3000)
+		}
 	};
 
 	ws.onerror = function(e) {
