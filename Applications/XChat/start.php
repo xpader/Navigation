@@ -25,9 +25,10 @@ $worker->onWorkerStop = function($worker) {
 };
 
 $worker->onConnect = function($connection) {
-	$connection->lastActive = microtime(true);
-	$connection->nickname = '';
 	$connection->uid = md5(rand(10000, 99999).'-'.$connection->id);
+	$connection->nickname = '';
+	$connection->lastActive = time(); //最后活跃时间
+	$connection->lastSend = microtime(true); //最后发送消息时间
 
 	$onlineCount = count($connection->worker->connections);
 	
@@ -37,7 +38,7 @@ $worker->onConnect = function($connection) {
 		'num'=>$onlineCount,
 		'way'=>'in',
 		'uid'=>$connection->uid
-	], true);
+	]);
 };
 
 $worker->onClose = function($connection) {
@@ -81,13 +82,13 @@ $worker->onMessage = function($connection, $data) use ($message) {
 		$connection->send(json_encode($res, JSON_UNESCAPED_UNICODE));
 	}
 
-	$connection->lastActive = microtime(true);
+	$connection->lastActive = time();
 };
 
 function sendToAll($connection, $res, $includeSelf=false) {
 	$res = json_encode($res, JSON_UNESCAPED_UNICODE);
 
-	$expires = microtime(true) - 60;
+	$expires = time() - 60;
 	
 	foreach ($connection->worker->connections as $conn) {
 		if (!$includeSelf && $conn->id == $connection->id) {

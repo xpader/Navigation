@@ -10,7 +10,7 @@ class Message {
 		$now = microtime(true);
 
 		//0.2秒内不能重复发送消息
-		if ($now - $connection->lastActive < 0.2) {
+		if ($now - $connection->lastSend < 0.2) {
 			return ['type'=>'send', 'status'=>false, 'msg'=>'您发表的太快了,请休息一下吧', 'rnd'=>$data['rnd']];
 		}
 
@@ -24,6 +24,8 @@ class Message {
 		if (!isset($data['rnd'])) {
 			$data['rnd'] = '0';
 		}
+
+		$connection->lastSend = $now;
 
 		$timestamp = time();
 		$time = date('Y-m-d H:i:s', $timestamp);
@@ -66,7 +68,7 @@ class Message {
 							break;
 
 						case 'la':
-							$res['msg'] = $connection->lastActive;
+							$res['msg'] = "lastActive: {$connection->lastActive}, lastSend: {$connection->lastSend}";
 							break;
 
 						case 'ko':
@@ -96,11 +98,11 @@ class Message {
 									if ($conn->uid == $args[0]) {
 										$msg = ['type'=>'out'];
 
-										if ($args[1]) {
+										if (!empty($args[1])) {
 											$msg['close'] = 1;
 										}
 
-										$conn->send(json_encode($msg));
+										$conn->close(json_encode($msg));
 										$kickedNick = $conn->nickname;
 										break;
 									}
