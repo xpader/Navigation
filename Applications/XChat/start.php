@@ -12,6 +12,8 @@ $worker = new Worker('websocket://0.0.0.0:8100');
 $worker->name = 'xchat-server';
 $worker->count = 1;
 
+$blackList = [];
+
 /**
  * @var $worker->db PDO
  */
@@ -25,6 +27,13 @@ $worker->onWorkerStop = function($worker) {
 };
 
 $worker->onConnect = function($connection) {
+	global $blackList;
+
+	if (in_array($connection->getRemoteIp(), $blackList)) {
+		$connection->close();
+		return;
+	}
+	
 	$connection->uid = md5(rand(10000, 99999).'-'.$connection->id);
 	$connection->nickname = '';
 	$connection->lastActive = time(); //最后活跃时间

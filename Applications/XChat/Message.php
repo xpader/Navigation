@@ -2,6 +2,8 @@
 
 namespace Applications\XChat;
 
+use Workerman\Events\Libevent;
+
 class Message {
 	
 	public function send($connection, $data) {
@@ -33,18 +35,19 @@ class Message {
 		//隐藏命令
 		if (substr($data['msg'], 0, 6) == 'xchat:') {
 			$command = substr($data['msg'], 6);
-			$commandArg = '';
 
 			//命令的剩余部分
 			if (($pos = strpos($command, ':')) !== false) {
-				$commandArg = substr($command, $pos+1);
+				$args = explode(':', substr($command, $pos+1));
 				$command = substr($command, 0, $pos);
+			} else {
+				$args = [''];
 			}
 
 			$res = ['type' => 'error', 'msg' => ''];
 			
 			if ($command == 'setmeadmin') {
-				if ($commandArg == $config['admin_password']) {
+				if ($args[0] == $config['admin_password']) {
 					$connection->isAdmin = true;
 					$res['msg'] = '已成功提升为管理员';
 				} else {
@@ -83,15 +86,14 @@ class Message {
 							break;
 
 						case 'tip':
-							if (trim($commandArg) != '') {
-								$res['msg'] = $commandArg;
+							if (trim($args[1]) != '') {
+								$res['msg'] = $args[1];
 								sendToAll($connection, $res, true);
 							}
 							return;
 
 						case 'kick':
 							$kickedNick = '';
-							$args = explode(':', $commandArg);
 
 							if ($args[0]) {
 								foreach ($connection->worker->connections as $conn) {
@@ -112,6 +114,35 @@ class Message {
 							$res['msg'] = "Kicked $kickedNick";
 							break;
 
+						case 'info':
+							$info = "UID: {$args[0]}";
+							
+							if ($args[0]) {
+								foreach ($connection->worker->connections as $conn) {
+									if ($conn->uid == $args[0]) {
+										$ip = $conn->getRemoteIp();
+										$info .= "<br>Nickname: {$conn->nickname}<br>IP: $ip";
+										$conn->close();
+										break;
+									}
+								}
+							}
+							
+							$res['msg'] = $info;
+							break;
+
+						case 'addblacklist':
+							global $blackList;
+							
+							if ($args[0]) {
+								if (!in_array($args[0], $blackList)) {
+									$blackList[] = $args[0];
+								}
+							}
+							
+							$res['msg'] = join('<br>', $blackList);
+							break;
+						
 						default:
 							$res['msg'] = "$command:unknow command";
 					}
