@@ -137,6 +137,7 @@ function sendToAll($connection, $res, $includeSelf=false) {
 		}
 		
 		$conn->send($res);
+		$conn->lastActive = time();
 	}
 }
 
