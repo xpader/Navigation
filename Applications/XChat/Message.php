@@ -84,8 +84,8 @@ class Message {
 							break;
 
 						case 'tip':
-							if (trim($args[1]) != '') {
-								$res['msg'] = $args[1];
+							if (trim($args[0]) != '') {
+								$res['msg'] = $args[0];
 								sendToAll($connection, $res, true);
 							}
 							return;

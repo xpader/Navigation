@@ -123,7 +123,8 @@ $worker->onMessage = function($connection, $data) {
 function sendToAll($connection, $res, $includeSelf=false) {
 	$res = dpack($res);
 
-	$expires = time() - 60;
+	$now = time();
+	$expires = $now - 60;
 	
 	foreach ($connection->worker->connections as $conn) {
 		if (!$includeSelf && $conn->id == $connection->id) {
@@ -137,7 +138,7 @@ function sendToAll($connection, $res, $includeSelf=false) {
 		}
 		
 		$conn->send($res);
-		$conn->lastActive = time();
+		$conn->lastActive = $now;
 	}
 }
 
