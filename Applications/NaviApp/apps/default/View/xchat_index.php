@@ -49,7 +49,7 @@ hr {border:none; height:1px; background-color:#5d7698;}
 .online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px; overflow-y:auto;}
 .tech-desc {font-size:12px;}
 .tech-desc b {display:block; font-size:14px;}
-#onlineList li {margin-left:6px; list-style:disc inside;}
+#onlineList li:before {content:"♞"; margin-right:5px; vertical-align:bottom;}
 
 .tool {position:absolute; height:50px; left:0; bottom:0; width:100%; background-color:#FFF;}
 .tool textarea {height:100%; width:100%; padding:5px 50px 5px 5px; border:none; border-radius:0; resize:none; background-color:transparent; float:left;}
@@ -71,10 +71,11 @@ hr {border:none; height:1px; background-color:#5d7698;}
 			<hr/>
 			<ul id="onlineList"></ul>
 			<hr/>
-			<div style="text-align:center;">
-				消息提醒<br>
-				<label><input type="checkbox" id="notiSound" value="1" checked />声音</label>
-				<label><input type="checkbox" id="notiTitle" value="1" checked />标题</label>
+			<div id="notiSetting">
+				<div style="text-align:center;">消息提醒</div>
+				<label><input type="checkbox" name="notiSound" value="1" checked />声音</label>
+				<label><input type="checkbox" name="notiTitle" value="1" checked />标题</label><br>
+				<label><input type="checkbox" name="notiBrowser" value="1" checked />通知</label>
 			</div>
 			<hr/>
 			<p style="text-align:center;">ping....<span id="lastActive">*</span>....pong</p>
@@ -88,10 +89,11 @@ hr {border:none; height:1px; background-color:#5d7698;}
 		</div>
 		<ul class="pop"></ul>
 	</div>
-	<div class="statusbar">这里是状态</div>
+	<div class="statusbar"></div>
 	<div class="tool" id="bottomArea">
 		<div class="tool-name-reg">
-			<form method="post">
+			<p style="text-align:center;">加载中..</p>
+			<form method="post" style="display:none;">
 				<input type="text" name="mynick" value="" placeholder="输入昵称.." class="reg-name" />
 				<input type="submit" value="开始聊天" class="reg-btn" />
 			</form>
@@ -105,6 +107,8 @@ hr {border:none; height:1px; background-color:#5d7698;}
 	<source src="/static/xchat.mp3" type="audio/mpeg">
 </audio>
 <script src="/static/lib/jquery-2.2.4.js"></script>
+<script src="/static/lib/jquery.cookie.js"></script>
+<script src="/static/lib/push.min.js"></script>
 <script src="/static/xchat.js"></script>
 </body>
 </html>

@@ -1,9 +1,9 @@
 var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), statusBar = mainWrap.find("> .statusbar"),
 	onlineCount = $("#onlineCount"), onlineList = $("#onlineList"),
 	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn"),
-	msgSound = document.getElementById("msgSound"), notiSound = $("#notiSound"), notiTitle = $("#notiTitle");
+	msgSound = document.getElementById("msgSound"), notiSound = notiTitle = notiBrowser = false;
 
-var ws, lastActiveTime = now(), nickname = "", uid,
+var ws, lastActiveTime = now(), nickname = $.cookie("nickname"), uid,
 	hidden, visibilityChange, visibilityState = true,
 	origTitle = document.title, blink;
 
@@ -123,8 +123,9 @@ function createConnection() {
 	}
 
 	ws = new WebSocket("ws://" + location.hostname + ":8100");
+	ws.autoReconnect = true;
 
-	var pingTimer = null, autoReconnect = true;
+	var pingTimer = null;
 
 	ws.setPing = function() {
 		pingTimer = setTimeout(function() {
@@ -141,7 +142,7 @@ function createConnection() {
 		showStatus("已建立连接", true);
 
 		//注册名称
-		if (nickname != "") {
+		if (nickname) {
 			this.sendProxy("reg", {nick: nickname});
 		}
 
@@ -150,109 +151,7 @@ function createConnection() {
 
 	ws.onmessage = function(event) {
 		var data = JSON.parse(event.data);
-
-		switch (data.type) {
-			case "msg":
-				addMessage('msg' + data.id, data.time, getNick(data.nick), data.msg);
-
-				if (notiSound.prop("checked") && msgSound.error == null) {
-					msgSound.play();
-				}
-
-				if (!visibilityState && blink == null && notiTitle.prop("checked")) {
-					var blinkState = 0;
-					blink = setInterval(function() {
-						if (blinkState == 0) {
-							document.title = "新消息 - " + origTitle;
-							blinkState = 1;
-						} else {
-							document.title = origTitle;
-							blinkState = 0;
-						}
-					}, 1000);
-				}
-				break;
-
-			case "send":
-				var li = $("#rnd" + data.rnd);
-
-				if (data.status) {
-					li.data("id", data.id);
-					li.find(".message-time").text(data.time);
-				} else {
-					li.find(".message-time").text('..发送失败').css("color", "#F00");
-					addTip(data.msg);
-				}
-				break;
-
-			case "online_count":
-				onlineCount.text(data.num);
-
-				var nick = getNick(data.nick);
-
-				if (data.way == "in") {
-					onlineList.append('<li data-uid="' + data.uid + '">' + nick + '</li>');
-				} else {
-					onlineList.find(">li[data-uid='" + data.uid + "']").remove();
-				}
-
-				if (data.uid != window.uid) {
-					addTip(nick + " " + (data.way == "in" ? "进入" : "离开") + '了房间');
-				}
-				break;
-
-			case "rename":
-				addTip(getNick(data.oldnick) + " 改名为 " + data.newnick);
-				onlineList.find(">li[data-uid='" + data.uid + "']").html(data.newnick);
-				break;
-
-			case "pong":
-				lastActiveTime = now();
-				break;
-
-			case "baseinfo":
-				window.uid = data.uid;
-				break;
-
-			case "reg":
-				if (data.status == "done") {
-					nickname = data.nick;
-					bottomArea.find(".tool-name-reg").hide();
-
-					setTimeout(function() {
-						input.focus();
-					}, 250);
-
-					var html = '';
-
-					for (var uid in data.onlineList) {
-						if (data.onlineList.hasOwnProperty(uid)) {
-							html += '<li data-uid="' + uid + '">' + getNick(data.onlineList[uid]) + '</li>';
-						}
-					}
-
-					onlineList.html(html);
-				} else {
-					showStatus(data.msg, true);
-				}
-				break;
-
-			case "out":
-				autoReconnect = false;
-				ws.close();
-
-				if (data.close) {
-					location.href = "https://www.baidu.com/";
-				} else {
-					showStatus("您已被踢出");
-				}
-				break;
-
-			case "error":
-				addTip(data.msg);
-				break;
-		}
-
+		MessageEvents[data.type].call(ws, data);
 		ws.clearPing();
 		ws.setPing();
 	};
@@ -261,7 +160,7 @@ function createConnection() {
 		ws.clearPing();
 		ws = null;
 
-		if (autoReconnect) {
+		if (ws.autoReconnect) {
 			showStatus("连接已断开，正在重连..");
 			setTimeout(createConnection, 3000)
 		}
@@ -281,14 +180,123 @@ function createConnection() {
 	};
 }
 
+var MessageEvents = {
+	"msg": function(data) {
+		var nick = getNick(data.nick);
+
+		addMessage('msg' + data.id, data.time, nick, data.msg);
+
+		if (notiSound && msgSound.error == null) {
+			msgSound.play();
+		}
+
+		if (!visibilityState) {
+			if (blink == null && notiTitle) {
+				var blinkState = 0;
+				blink = setInterval(function () {
+					if (blinkState == 0) {
+						document.title = "新消息 - " + origTitle;
+						blinkState = 1;
+					} else {
+						document.title = origTitle;
+						blinkState = 0;
+					}
+				}, 1000);
+			}
+
+			if (notiBrowser) {
+				Push.clear();
+				Push.create("XChat", {
+					body: nick + ": " + data.msg.substr(0, 15) + "..",
+					icon: $("link[rel='shortcut icon']").attr("href"),
+					timeout: 4000,
+					onClick: function () {
+						window.focus();
+						this.close();
+					}
+				});
+			}
+		}
+	},
+	"send": function(data) {
+		var li = $("#rnd" + data.rnd);
+
+		if (data.status) {
+			li.data("id", data.id);
+			li.find(".message-time").text(data.time);
+		} else {
+			li.find(".message-time").text('..发送失败').css("color", "#F00");
+			addTip(data.msg);
+		}
+	},
+	"online_count": function(data) {
+		onlineCount.text(data.num);
+
+		var nick = getNick(data.nick);
+
+		if (data.way == "in") {
+			onlineList.append('<li data-uid="' + data.uid + '">' + nick + '</li>');
+		} else {
+			onlineList.find(">li[data-uid='" + data.uid + "']").remove();
+		}
+
+		if (data.uid != uid) {
+			addTip(nick + " " + (data.way == "in" ? "进入" : "离开") + '了房间');
+		}
+	},
+	"rename": function(data) {
+		addTip(getNick(data.oldnick) + " 改名为 " + data.newnick);
+		onlineList.find(">li[data-uid='" + data.uid + "']").html(data.newnick);
+	},
+	"pong": function() {
+		lastActiveTime = now();
+	},
+	"baseinfo": function(data) {
+		uid = data.uid;
+	},
+	"reg": function(data) {
+		if (data.status == "done") {
+			nickname = data.nick;
+			bottomArea.find(".tool-name-reg").hide();
+
+			setTimeout(function () {
+				input.focus();
+			}, 250);
+
+			var html = '';
+
+			for (var uid in data.onlineList) {
+				if (data.onlineList.hasOwnProperty(uid)) {
+					html += '<li data-uid="' + uid + '">' + getNick(data.onlineList[uid]) + '</li>';
+				}
+			}
+
+			onlineList.html(html);
+		} else {
+			showStatus(data.msg, true);
+		}
+	},
+	"out": function(data) {
+		ws.autoReconnect = false;
+		ws.close();
+
+		if (data.close) {
+			location.href = "https://www.baidu.com/";
+		} else {
+			showStatus("您已被踢出");
+		}
+	},
+	"error": function(data) {
+		addTip(data.msg);
+	}
+};
+
 function adjustWindowSize() {
 	//mainWrap.height($(window).height());
 	//input.width(bottomArea.width() - 50 - 10);
 }
 
-
 adjustWindowSize();
-
 createConnection();
 
 //加载历史记录
@@ -306,9 +314,9 @@ $.getJSON("/xchat/getHistory", function(history) {
 });
 
 //注册昵称
-if (nickname == "") {
+if (!nickname) {
 	var nameReg = bottomArea.find(".tool-name-reg");
-
+	nameReg.find(">p").remove();
 	nameReg.find("form").submit(function() {
 		if ($.trim(this.mynick.value) == "") {
 			showStatus("请输入有效的昵称", true);
@@ -317,9 +325,10 @@ if (nickname == "") {
 
 		ws.sendProxy("reg", {nick: this.mynick.value});
 		nickname = this.mynick.value;
+		$.cookie("nickname", nickname, {path:location.pathname, expires:7});
 
 		return false;
-	});
+	}).show();
 }
 
 sendBtn.click(sendMsg);
@@ -334,6 +343,26 @@ input.keydown(function(e) {
 		sendMsg();
 		return false;
 	}
+});
+
+$("#notiSetting").find(":checkbox").each(function() {
+	var cookieName = $(this).attr("name"), openState;
+
+	var cv = $.cookie(cookieName);
+	if (cv !== undefined) {
+		openState = cv == 1;
+		$(this).prop("checked", openState);
+	} else {
+		openState = $(this).prop("checked");
+	}
+
+	window[cookieName] = openState;
+
+	$(this).click(function() {
+		var openState = $(this).prop("checked");
+		$.cookie(cookieName, openState ? 1 : 0, {path:location.pathname, expires:7});
+		window[cookieName] = openState;
+	});
 });
 
 var pongViewTimer = setInterval(function() {
