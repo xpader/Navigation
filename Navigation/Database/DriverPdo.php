@@ -31,14 +31,13 @@ class DriverPdo extends DriverInterface {
 		switch ($config['type']) {
 			case 'sqlite':
 				$dsn = "sqlite:{$config['file']}";
-				$args = array($dsn);
+				$args = array($dsn, null, null, array(PDO::ATTR_TIMEOUT=>5));
 				$this->embedded = true;
 				break;
 
 			default:
 				if (empty($config['dsn'])) {
 					$dsn = $config['type'].":host={$config['host']};dbname={$config['dbname']}";
-
 
 					if (!empty($config['port'])) {
 						$dsn .= ";port={$config['port']}";
@@ -61,7 +60,7 @@ class DriverPdo extends DriverInterface {
 
 		//Connect
 		try {
-			$class= new \ReflectionClass('PDO');
+			$class = new \ReflectionClass('PDO');
 			$this->link = $class->newInstanceArgs($args);
 		} catch (PDOException $e) {
 			$this->e = $e;

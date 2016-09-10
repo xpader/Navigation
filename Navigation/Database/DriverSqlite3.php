@@ -28,6 +28,7 @@ class DriverSqlite3 extends DriverInterface {
 
 		try {
 			$this->link = new SQLite3($config['file']);
+			$this->link->busyTimeout(5000);
 		} catch (\Exception $e) {
 			$this->e = $e;
 			return false;

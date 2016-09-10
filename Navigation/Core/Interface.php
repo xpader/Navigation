@@ -9,6 +9,7 @@ use Navigation\Core\Loader;
  *
  * @property Navigation\Core\Config config
  * @property Navigation\Core\Router router
+ * @property Navigation\Database\Db db
  */
 abstract class Controller {
 
