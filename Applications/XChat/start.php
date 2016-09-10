@@ -52,10 +52,12 @@ $worker->onConnect = function($connection) {
 	$connection->onWebSocketConnect = function($connection) use ($now) {
 		if (!isset($_GET['hash'])) {
 			$connection->close();
+			return;
 		}
 
 		if (!preg_match('/^\w{32}$/', $_GET['hash'])) {
 			$connection->close();
+			return;
 		}
 
 		//获取用户

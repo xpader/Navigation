@@ -36,8 +36,8 @@ header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; tex
 .pop::-webkit-scrollbar-thumb:hover {background-color:rgb(110, 135, 171);}
 
 .message {padding:0 10px;}
-.message-head {font-size:12px; color:#8193A9; margin-bottom:2px;}
-.message-nick {margin-right:7px;}
+.message-head {font-size:12px; color:#657384; margin-bottom:2px;}
+.message-nick {margin-right:7px; color:#96a4b7;}
 .message-content {padding:8px; border-radius:8px; display:inline-block; position:relative; max-width:90%; word-wrap:break-word;}
 .message-content:before {display:block; width:0; height:0; content:"."; font-size:0; border:7px solid #2E476B; position:absolute; z-index:1; top:9px;}
 .message-receive .message-content {margin-left:7px; background-color:#416FB2;}

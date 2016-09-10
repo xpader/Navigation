@@ -300,12 +300,11 @@ var MessageEvents = {
 		if (data.status == "done") {
 			nickname = data.nick;
 			bottomArea.find(".tool-name-reg").hide();
+			onlineList.find(">li[data-uid='" + uid + "']").html(nickname);
 
 			setTimeout(function () {
 				input.focus();
 			}, 250);
-
-			showOnlineList(data.onlineList);
 		} else {
 			showStatus(data.msg, true);
 		}

@@ -227,7 +227,7 @@ class Message {
 			'uid' => $connection->uid
 		]);
 
-		Helper::sendOnlineList($connection);
+		//Helper::sendOnlineList($connection);
 
 		return ['type'=>'reg', 'status'=>'done', 'nick'=>$data['nick']];
 	}
