@@ -158,12 +158,13 @@ function createConnection() {
 
 	ws.onclose = function() {
 		ws.clearPing();
-		ws = null;
 
 		if (ws.autoReconnect) {
 			showStatus("连接已断开，正在重连..");
 			setTimeout(createConnection, 3000)
 		}
+
+		ws = null;
 	};
 
 	ws.onerror = function(e) {
@@ -292,7 +293,16 @@ var MessageEvents = {
 };
 
 function adjustWindowSize() {
-	//mainWrap.height($(window).height());
+	var winWidth = $(window).width();
+	var body = $("body");
+
+	if (winWidth > 600) {
+		body.removeClass("mobile");
+		mainWrap.css({"height": ($(window).height() - 36) + "px", "border-radius":"5px", "margin":"18px auto"});
+	} else {
+		body.addClass("mobile");
+		mainWrap.css({"height":"100%", "border-radius":"0px", "margin":"0 auto"});
+	}
 	//input.width(bottomArea.width() - 50 - 10);
 }
 

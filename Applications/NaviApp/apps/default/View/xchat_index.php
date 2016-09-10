@@ -21,9 +21,11 @@ a:hover {color:#0c00ff;}
 a:visited {color:#807ea9;}
 hr {border:none; height:1px; background-color:#5d7698;}
 
-.wrap {position:relative; max-width:600px; margin:0 auto; background-color:#2E476B; height:100%;}
-.main {position:absolute; left:0; top:0; bottom:50px; width:100%;}
+.wrap {position:relative; max-width:600px; margin:18px auto; background-color:#2E476B; height:90%; border-radius:5px; overflow:hidden;}
+.main {position:absolute; left:0; top:50px; bottom:50px; width:100%;}
 .main > * {height:100%;}
+
+header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; text-align:center; line-height:30px;}
 
 .pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-top:15px;}
 .pop > li {margin-bottom:15px;}
@@ -65,6 +67,7 @@ hr {border:none; height:1px; background-color:#5d7698;}
 </head>
 <body>
 <div class="wrap">
+	<header>XChat 聊天室演示</header>
 	<div class="main">
 		<div class="online">
 			<div>当前在线：<span id="onlineCount">..</span></div>
