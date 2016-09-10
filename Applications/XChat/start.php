@@ -1,6 +1,7 @@
 <?php
 use \Workerman\Worker;
 use \Workerman\Autoloader;
+use \Applications\XChat\Helper;
 use \Applications\XChat\Data;
 
 // 非全局启动则自己加载 Workerman 的 Autoloader
@@ -28,6 +29,7 @@ $worker->onWorkerStart = function($worker) {
 	Data::init();
 	Data::clearConnections();
 
+	//初始化IP黑名单
 	$ipBlackList = Data::getIpBlackList();
 
 	if ($ipBlackList === false) {
@@ -39,29 +41,61 @@ $worker->onWorkerStart = function($worker) {
 $worker->onConnect = function($connection) {
 	global $ipBlackList;
 
+	//IP 黑名单限制
 	if (in_array($connection->getRemoteIp(), $ipBlackList)) {
 		$connection->destroy();
 		return;
 	}
+
+	$now = time();
 	
-	$connection->uid = md5(rand(10000, 99999).'-'.$connection->id);
-	$connection->nickname = '';
-	$connection->lastActive = time(); //最后活跃时间
-	$connection->lastSend = microtime(true); //最后发送消息时间
+	$connection->onWebSocketConnect = function($connection) use ($now) {
+		if (!isset($_GET['hash'])) {
+			$connection->close();
+		}
 
-	Data::addConnection($connection);
+		if (!preg_match('/^\w{32}$/', $_GET['hash'])) {
+			$connection->close();
+		}
 
-	$connection->send(dpack(['type'=>'baseinfo', 'uid'=>$connection->uid]));
+		//获取用户
+		$user = Data::getUserByHash($_GET['hash']);
+		
+		if (!$user) {
+			$uid = md5(rand(10000, 99999).'-'.$connection->id.'-'.uniqid('', true));
+			Data::addUser($uid, $_GET['hash']);
+		} else {
+			$uid = $user['uid'];
+			Data::updateUser($uid, ['last_login'=>$now]);
+		}
 
-	$onlineCount = count($connection->worker->connections);
-	
-	sendToAll($connection, [
-		'type' => 'online_count',
-		'nick' => $connection->nickname,
-		'num' => $onlineCount,
-		'way' => 'in',
-		'uid' => $connection->uid
-	], true);
+		//注册连接
+		$connection->uid = $uid;
+		$connection->nickname = $user ? $user['nickname'] : '';
+		$connection->lastActive = time(); //最后活跃时间
+		$connection->lastSend = microtime(true); //最后发送消息时间
+
+		Data::addConnection($connection);
+		
+		//替换已有的登录
+		$myConnections = Data::getConnectionsByUid($uid);
+		$isReplaced = false;
+		
+		foreach ($myConnections as $conn) {
+			if ($conn['id'] != $connection->id && isset($connection->worker->connections[$conn['id']])) {
+				$otherConn = $connection->worker->connections[$conn['id']];
+				$otherConn->replaced = true;
+				Helper::send($otherConn, ['type' => 'out', 'status' => 'replaced']);
+				$otherConn->close();
+				$isReplaced = true;
+			}
+		}
+
+		//返回信息
+		Helper::send($connection, ['type'=>'baseinfo', 'uid'=>$connection->uid, 'nickname'=>$connection->nickname]);
+		$isReplaced || Helper::userStateChange($connection, true);
+		Helper::sendOnlineList($connection);
+	};
 };
 
 $worker->onClose = function($connection) {
@@ -71,15 +105,9 @@ $worker->onClose = function($connection) {
 
 	Data::removeConnection($connection->id);
 
-	$onlineCount = count($connection->worker->connections);
-	
-	sendToAll($connection, [
-		'type' => 'online_count',
-		'nick' => $connection->nickname,
-		'num' => $onlineCount,
-		'way' => 'leave',
-		'uid' => $connection->uid
-	]);
+	if (!isset($connection->replaced)) {
+		Helper::userStateChange($connection, false);
+	}
 };
 
 require __DIR__.'/config.php';
@@ -89,11 +117,15 @@ require __DIR__.'/config.php';
  * @param mixed $data
  */
 $worker->onMessage = function($connection, $data) {
+	if (!isset($connection->uid)) {
+		Helper::error($connection, '您尚未注册');
+		return;
+	}
+
 	$data = @json_decode($data, true);
 
 	if (!is_array($data) || !isset($data['type'])) {
-		$res = ['type'=>'error', 'msg'=>'数据格式错误'];
-		$connection->send(dpack($res));
+		Helper::error($connection, '数据格式错误');
 		return;
 	}
 
@@ -101,46 +133,14 @@ $worker->onMessage = function($connection, $data) {
 	$call = '\Applications\XChat\Message::'.$data['type'];
 	
 	if (is_callable($call)) {
-		$res = call_user_func_array($call, [$connection, $data]);
+		$res = call_user_func($call, $connection, $data);
+		is_array($res) && Helper::send($connection, $res);
 	} else {
-		$res = ['type'=>'error', 'msg'=>'数据格式错误'];
-	}
-
-	if (isset($res) && is_array($res)) {
-		$connection->send(dpack($res, JSON_UNESCAPED_UNICODE));
+		Helper::error($connection, '数据格式错误');
 	}
 
 	$connection->lastActive = time();
 };
-
-/**
- * 将数据发送给所有连接
- *
- * @param \Workerman\Connection\TcpConnection $connection 当前连接
- * @param array $res
- * @param bool $includeSelf 是否发送给自己，默认不发
- */
-function sendToAll($connection, $res, $includeSelf=false) {
-	$res = dpack($res);
-
-	$now = time();
-	$expires = $now - 60;
-	
-	foreach ($connection->worker->connections as $conn) {
-		if (!$includeSelf && $conn->id == $connection->id) {
-			continue;
-		}
-		
-		//移除不活跃的链接
-		if ($conn->lastActive < $expires) {
-			$conn->close();
-			continue;
-		}
-		
-		$conn->send($res);
-		$conn->lastActive = $now;
-	}
-}
 
 /**
  * 代理数据格式封装

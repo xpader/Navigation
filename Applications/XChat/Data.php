@@ -13,7 +13,7 @@ class Data {
 
 	public static function init() {
 		if (self::$db === null) {
-			self::$db = new PDO('sqlite:' . __DIR__ . '/data/xchat.db');
+			self::$db = new PDO('sqlite:' . __DIR__ . '/data/xchat.db', null, null, [PDO::ATTR_TIMEOUT=>5]);
 		}
 	}
 
@@ -90,6 +90,41 @@ class Data {
 		$sth = self::$db->prepare('SELECT * FROM connections WHERE ip=?');
 		$sth->execute([$ip]);
 		return $sth->fetchAll(PDO::FETCH_ASSOC);
+	}
+	
+	public static function getConnectionsByUid($uid) {
+		$sth = self::$db->prepare('SELECT * FROM connections WHERE uid=?');
+		$sth->execute([$uid]);
+		return $sth->fetchAll(PDO::FETCH_ASSOC);
+	}
+
+	public static function getUserByHash($hash) {
+		$sth = self::$db->prepare('SELECT * FROM users WHERE hash=?');
+		$sth->execute([$hash]);
+
+		$user = $sth->fetch(PDO::FETCH_ASSOC);
+
+		return $user;
+	}
+
+	public static function addUser($uid, $hash) {
+		$sth = self::$db->prepare('INSERT INTO users (uid, hash, last_login) VALUES(?, ?, ?)');
+		return $sth->execute([$uid, $hash, time()]);
+	}
+
+	public static function updateUser($uid, $data) {
+		$statement = '';
+
+		foreach (array_keys($data) as $k) {
+			if ($statement != '') $statement .= ', ';
+			$statement .= "`$k`=?";
+		}
+
+		$vals = array_values($data);
+		$vals[] = $uid;
+
+		$sth = self::$db->prepare('UPDATE users SET '.$statement.' WHERE `uid`=?');
+		return $sth->execute($vals);
 	}
 
 }

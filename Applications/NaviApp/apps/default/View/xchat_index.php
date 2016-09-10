@@ -21,11 +21,10 @@ a:hover {color:#0c00ff;}
 a:visited {color:#807ea9;}
 hr {border:none; height:1px; background-color:#5d7698;}
 
-.wrap {position:relative; max-width:600px; margin:18px auto; background-color:#2E476B; height:90%; border-radius:5px; overflow:hidden;}
+.wrap {position:relative; max-width:600px; min-height:200px; margin:18px auto; background-color:#2E476B; height:90%; border-radius:5px; overflow:hidden; box-shadow:0 0 18px #1c283a;}
 .main {position:absolute; left:0; top:50px; bottom:50px; width:100%;}
 .main > * {height:100%;}
-
-header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; text-align:center; line-height:30px;}
+header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; text-align:center; line-height:30px; border-bottom:1px solid #5f6f88;}
 
 .pop {width:auto; overflow-x:hidden; overflow-y:auto; zoom:1; margin:0; padding-top:15px;}
 .pop > li {margin-bottom:15px;}
@@ -106,6 +105,7 @@ header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; tex
 	</div>
 </div>
 
+<input type="hidden" id="userHash" value="<?=$hash?>">
 <audio controls="controls" id="msgSound">
 	<source src="/static/xchat.mp3" type="audio/mpeg">
 </audio>

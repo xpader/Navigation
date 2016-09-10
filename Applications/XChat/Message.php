@@ -86,7 +86,7 @@ class Message {
 						case 'tip':
 							if (trim($args[0]) != '') {
 								$res['msg'] = $args[0];
-								sendToAll($connection, $res, true);
+								Helper::sendToAll($connection, $res, true);
 							}
 							return;
 
@@ -96,10 +96,10 @@ class Message {
 							if ($args[0]) {
 								foreach ($connection->worker->connections as $conn) {
 									if ($conn->uid == $args[0]) {
-										$msg = ['type'=>'out'];
+										$msg = ['type'=>'out', 'status'=>''];
 
 										if (!empty($args[1])) {
-											$msg['close'] = 1;
+											$msg['status'] = 'close';
 										}
 
 										$conn->close(dpack($msg));
@@ -184,7 +184,7 @@ class Message {
 				return ['type'=>'send', 'status'=>false, 'rnd'=>$data['rnd'], 'time'=>$time, 'msg'=>'数据保存失败: '.Data::getError()];
 			}
 			
-			sendToAll($connection, [
+			Helper::sendToAll($connection, [
 				'type' => 'msg',
 				'nick' => $connection->nickname,
 				'msg' => $data['msg'],
@@ -196,7 +196,14 @@ class Message {
 		
 		return ['type'=>'send', 'status'=>true, 'rnd'=>$data['rnd'], 'id'=>$msgId, 'time'=>$time];
 	}
-	
+
+	/**
+	 * 用户提交昵称进行注册
+	 *
+	 * @param $connection
+	 * @param array $data
+	 * @return array|void
+	 */
 	public static function reg($connection, $data) {
 		if (!isset($data['nick']) || trim($data['nick'] == '')) {
 			return ['type'=>'error', 'msg'=>'昵称不能为空'];
@@ -204,24 +211,25 @@ class Message {
 
 		$data['nick'] = cleanXss($data['nick']);
 
+		if ($data['nick'] == $connection->nickname) {
+			return;
+		}
+
 		$oldNickname = $connection->nickname;
 		$connection->nickname = $data['nick'];
+		
+		Data::updateUser($connection->uid, ['nickname'=>$data['nick']]);
 
-		sendToAll($connection, [
+		Helper::sendToAll($connection, [
 			'type' => 'rename',
 			'oldnick' => $oldNickname,
 			'newnick' => $data['nick'],
 			'uid' => $connection->uid
 		]);
 
-		//在线用户列表
-		$list = [];
+		Helper::sendOnlineList($connection);
 
-		foreach ($connection->worker->connections as $conn) {
-			$list[$conn->uid] = $conn->nickname;
-		}
-
-		return ['type'=>'reg', 'status'=>'done', 'nick'=>$data['nick'], 'onlineList'=>$list];
+		return ['type'=>'reg', 'status'=>'done', 'nick'=>$data['nick']];
 	}
 	
 	public static function ping() {

@@ -122,7 +122,7 @@ function createConnection() {
 		return;
 	}
 
-	ws = new WebSocket("ws://" + location.hostname + ":8100");
+	ws = new WebSocket("ws://" + location.hostname + ":8100/?hash=" + $("#userHash").val());
 	ws.autoReconnect = true;
 
 	var pingTimer = null;
@@ -181,11 +181,24 @@ function createConnection() {
 	};
 }
 
+function showOnlineList(olist) {
+	var html = '';
+	for (var uid in olist) {
+		if (olist.hasOwnProperty(uid)) {
+			html += '<li data-uid="' + uid + '">' + getNick(olist[uid]) + '</li>';
+		}
+	}
+	onlineList.html(html);
+}
+
 var MessageEvents = {
 	"msg": function(data) {
 		var nick = getNick(data.nick);
+		var type = data.uid == uid ? 1 : 0;
 
-		addMessage('msg' + data.id, data.time, nick, data.msg);
+		addMessage('msg' + data.id, data.time, nick, data.msg, type);
+
+		if (type == 1) return;
 
 		if (notiSound && msgSound.error == null) {
 			msgSound.play();
@@ -208,7 +221,7 @@ var MessageEvents = {
 			if (notiBrowser) {
 				Push.clear();
 				Push.create("XChat", {
-					body: nick + ": " + data.msg.substr(0, 15) + "..",
+					body: nick + ": " + data.msg.substr(0, 20) + "..",
 					icon: $("link[rel='shortcut icon']").attr("href"),
 					timeout: 4000,
 					onClick: function () {
@@ -230,20 +243,24 @@ var MessageEvents = {
 			addTip(data.msg);
 		}
 	},
-	"online_count": function(data) {
+	"user_state_change": function(data) {
 		onlineCount.text(data.num);
-
+		
 		var nick = getNick(data.nick);
 
-		if (data.way == "in") {
+		if (data.state == "online") {
 			onlineList.append('<li data-uid="' + data.uid + '">' + nick + '</li>');
 		} else {
 			onlineList.find(">li[data-uid='" + data.uid + "']").remove();
 		}
 
 		if (data.uid != uid) {
-			addTip(nick + " " + (data.way == "in" ? "进入" : "离开") + '了房间');
+			addTip(nick + " " + (data.state == "online" ? "进入" : "离开") + '了房间');
 		}
+	},
+	"online_list": function(data) {
+		onlineCount.text(data.num);
+		showOnlineList(data.onlineList);
 	},
 	"rename": function(data) {
 		addTip(getNick(data.oldnick) + " 改名为 " + data.newnick);
@@ -254,6 +271,30 @@ var MessageEvents = {
 	},
 	"baseinfo": function(data) {
 		uid = data.uid;
+
+		if (data.nickname) {
+			nickname = data.nickname;
+			bottomArea.find(".tool-name-reg").hide();
+			
+			setTimeout(function () {
+				input.focus();
+			}, 250);
+		}
+
+		//加载历史记录
+		$.getJSON("/xchat/getHistory", function(history) {
+			var html = '', type;
+
+			for (var i=0,row; row=history[i]; i++) {
+				type = row.uid != uid ? 0 : 1;
+				html += buildMessageHtml('msg' + row.id, row.time, row.nickname, row.msg, type);
+			}
+
+			if (html != '') {
+				html += '<li class="split"><span>以上是历史消息</span></li>';
+				messageAppend(html, true, true);
+			}
+		});
 	},
 	"reg": function(data) {
 		if (data.status == "done") {
@@ -264,15 +305,7 @@ var MessageEvents = {
 				input.focus();
 			}, 250);
 
-			var html = '';
-
-			for (var uid in data.onlineList) {
-				if (data.onlineList.hasOwnProperty(uid)) {
-					html += '<li data-uid="' + uid + '">' + getNick(data.onlineList[uid]) + '</li>';
-				}
-			}
-
-			onlineList.html(html);
+			showOnlineList(data.onlineList);
 		} else {
 			showStatus(data.msg, true);
 		}
@@ -281,10 +314,15 @@ var MessageEvents = {
 		ws.autoReconnect = false;
 		ws.close();
 
-		if (data.close) {
-			location.href = "https://www.baidu.com/";
-		} else {
-			showStatus("您已被踢出");
+		switch (data.status) {
+			case "close":
+				location.href = "https://www.baidu.com/";
+				break;
+			case "replaced":
+				showStatus("您已在别处登录,当前连接已断开");
+				break;
+			default:
+				showStatus("您已被踢出");
 		}
 	},
 	"error": function(data) {
@@ -308,20 +346,6 @@ function adjustWindowSize() {
 
 adjustWindowSize();
 createConnection();
-
-//加载历史记录
-$.getJSON("/xchat/getHistory", function(history) {
-	var html = '';
-
-	for (var i=0,row; row=history[i]; i++) {
-		html += buildMessageHtml('msg' + row.id, row.time, row.nickname, row.msg);
-	}
-
-	if (html != '') {
-		html += '<li class="split"><span>以上是历史消息</span></li>';
-		messageAppend(html, true, true);
-	}
-});
 
 //注册昵称
 if (!nickname) {
