@@ -51,7 +51,7 @@ class Staticfile extends \Controller {
 
 		$file = RUN_DIR.'/static/'.$path;
 
-		self::$sender->send($file, array('X-Powered-By'=>'Navi/'.Navi::VERSION));
+		self::$sender->send($file);
 	}
 
 }
