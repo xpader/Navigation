@@ -76,8 +76,6 @@ $worker->onConnect = function($connection) {
 		$connection->nickname = $user ? $user['nickname'] : '';
 		$connection->lastActive = time(); //最后活跃时间
 		$connection->lastSend = microtime(true); //最后发送消息时间
-
-		Data::addConnection($connection);
 		
 		//替换已有的登录
 		$myConnections = Data::getConnectionsByUid($uid);
@@ -92,6 +90,8 @@ $worker->onConnect = function($connection) {
 				$isReplaced = true;
 			}
 		}
+
+		Data::addConnection($connection);
 
 		//返回信息
 		Helper::send($connection, ['type'=>'baseinfo', 'uid'=>$connection->uid, 'nickname'=>$connection->nickname]);
