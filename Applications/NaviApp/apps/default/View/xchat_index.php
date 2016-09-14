@@ -21,8 +21,8 @@ a:hover {color:#0c00ff;}
 a:visited {color:#807ea9;}
 hr {border:none; height:1px; background-color:#5d7698;}
 
-.wrap {position:relative; max-width:750px; min-height:200px; margin:18px auto; background-color:#2E476B; height:90%; border-radius:5px; overflow:hidden; box-shadow:0 0 18px #1c283a;}
-.main {position:absolute; left:0; top:50px; bottom:50px; width:100%;}
+.wrap {position:relative; max-width:750px; min-width:580px; min-height:200px; margin:18px auto; background-color:#2E476B; height:90%; border-radius:5px; overflow:hidden; box-shadow:0 0 18px #1c283a;}
+.main {position:absolute; left:0; top:50px; bottom:0; width:100%;}
 .main > * {height:100%;}
 header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; text-align:center; line-height:30px; border-bottom:1px solid #5f6f88;}
 
@@ -47,10 +47,14 @@ header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; tex
 .message-send .message-content:before {right:-14px; border-left-color:#49658C;}
 .message-content img {max-width:100%;}
 
-.recent {float:left; width:150px; border-right:1px solid #5f6f88; background-color:#3c587f;  }
-.recent ul li {border-bottom: 1px solid #586373;}
+.recent {float:left; clear:left; width:150px; border-right:1px solid #5f6f88; background-color:#3c587f;  }
+.recent ul li {border-bottom: 1px solid #586373; cursor:pointer;}
+.recent ul li:hover {background-color:#45638c;}
 .recent-nick {padding:5px;  }
 .recent-msg {padding:0 5px 5px; font-size:10px; color:#748aa9;}
+.area {width:auto; overflow:hidden; zoom:1; position:relative;}
+.area-chat {position:absolute; left:0; top:0; width:100%; bottom:50px;}
+.area-chat > * {height:100%;}
 
 .online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px; overflow-y:auto;}
 .tech-desc {font-size:12px;}
@@ -79,43 +83,55 @@ header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; tex
 					<div class="recent-nick">德玛西亚</div>
 					<div class="recent-msg">创建一个新的定时微...</div>
 				</li>
+				<li>
+					<div class="recent-nick">德玛西亚</div>
+					<div class="recent-msg">aaaaaaaaaaaaaaaaaa...</div>
+				</li>
+				<li>
+					<div class="recent-nick">德玛西亚</div>
+					<div class="recent-msg">创建一个新的定时微...</div>
+				</li>
 			</ul>
 		</div>
-		<div class="online">
-			<div>当前在线：<span id="onlineCount">..</span></div>
-			<hr/>
-			<ul id="onlineList"></ul>
-			<hr/>
-			<div id="notiSetting">
-				<div style="text-align:center;">消息提醒</div>
-				<label><input type="checkbox" name="notiSound" value="1" checked />声音</label>
-				<label><input type="checkbox" name="notiTitle" value="1" checked />标题</label><br>
-				<label><input type="checkbox" name="notiBrowser" value="1" checked />通知</label>
+		<div class="area">
+			<div class="area-chat">
+				<div class="online">
+					<div>当前在线：<span id="onlineCount">..</span></div>
+					<hr/>
+					<ul id="onlineList"></ul>
+					<hr/>
+					<div id="notiSetting">
+						<div style="text-align:center;">消息提醒</div>
+						<label><input type="checkbox" name="notiSound" value="1" checked />声音</label>
+						<label><input type="checkbox" name="notiTitle" value="1" checked />标题</label><br>
+						<label><input type="checkbox" name="notiBrowser" value="1" checked />通知</label>
+					</div>
+					<hr/>
+					<p style="text-align:center;">ping....<span id="lastActive">*</span>....pong</p>
+					<hr/>
+					<div class="tech-desc">
+						<p><b>Websocket</b>Connection protocol</p>
+						<p><b>Navigation</b>PHP Web Framework</p>
+						<p><b>Workerman</b>PHP Socket Framework</p>
+						<p><a href="http://git.oschina.net/pader/Navigation" target="_blank">Git@OSC</a></p>
+					</div>
+				</div>
+				<ul class="pop"></ul>
 			</div>
-			<hr/>
-			<p style="text-align:center;">ping....<span id="lastActive">*</span>....pong</p>
-			<hr/>
-			<div class="tech-desc">
-				<p><b>Websocket</b>Connection protocol</p>
-				<p><b>Navigation</b>PHP Web Framework</p>
-				<p><b>Workerman</b>PHP Socket Framework</p>
-				<p><a href="http://git.oschina.net/pader/Navigation" target="_blank">Git@OSC</a></p>
+			<div class="statusbar"></div>
+			<div class="tool" id="bottomArea">
+				<div class="tool-name-reg">
+					<p style="text-align:center;">加载中..</p>
+					<form method="post" style="display:none;">
+						<input type="text" name="mynick" value="" placeholder="输入昵称.." class="reg-name" />
+						<input type="submit" value="开始聊天" class="reg-btn" />
+					</form>
+				</div>
+				<textarea id="sendText" placeholder="输入要发送的内容.."></textarea>
+				<button type="button" id="sendBtn">发送</button>
 			</div>
-		</div>
-		<ul class="pop"></ul>
-	</div>
-	<div class="statusbar"></div>
-	<div class="tool" id="bottomArea">
-		<div class="tool-name-reg">
-			<p style="text-align:center;">加载中..</p>
-			<form method="post" style="display:none;">
-				<input type="text" name="mynick" value="" placeholder="输入昵称.." class="reg-name" />
-				<input type="submit" value="开始聊天" class="reg-btn" />
-			</form>
-		</div>
-		<textarea id="sendText" placeholder="输入要发送的内容.."></textarea>
-		<button type="button" id="sendBtn">发送</button>
-	</div>
+		</div><!--.area-->
+	</div><!--.main-->
 </div>
 
 <input type="hidden" id="userHash" value="<?=$hash?>">

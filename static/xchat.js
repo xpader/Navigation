@@ -1,4 +1,4 @@
-var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), statusBar = mainWrap.find("> .statusbar"),
+var mainWrap = $(".wrap"), pop = $("ul.pop"), input = $("#sendText"), statusBar = mainWrap.find(".statusbar"),
 	onlineCount = $("#onlineCount"), onlineList = $("#onlineList"),
 	lastActive = $("#lastActive"), bottomArea = $("#bottomArea"), sendBtn = $("#sendBtn"),
 	msgSound = document.getElementById("msgSound"), notiSound = notiTitle = notiBrowser = false;
@@ -331,7 +331,7 @@ var MessageEvents = {
 
 function adjustWindowSize() {
 	var winWidth = $(window).width();
-	var body = $("body");
+	var body = $(document.body);
 
 	if (winWidth > 650) {
 		body.removeClass("mobile");
