@@ -21,7 +21,7 @@ a:hover {color:#0c00ff;}
 a:visited {color:#807ea9;}
 hr {border:none; height:1px; background-color:#5d7698;}
 
-.wrap {position:relative; max-width:600px; min-height:200px; margin:18px auto; background-color:#2E476B; height:90%; border-radius:5px; overflow:hidden; box-shadow:0 0 18px #1c283a;}
+.wrap {position:relative; max-width:750px; min-height:200px; margin:18px auto; background-color:#2E476B; height:90%; border-radius:5px; overflow:hidden; box-shadow:0 0 18px #1c283a;}
 .main {position:absolute; left:0; top:50px; bottom:50px; width:100%;}
 .main > * {height:100%;}
 header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; text-align:center; line-height:30px; border-bottom:1px solid #5f6f88;}
@@ -47,6 +47,11 @@ header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; tex
 .message-send .message-content:before {right:-14px; border-left-color:#49658C;}
 .message-content img {max-width:100%;}
 
+.recent {float:left; width:150px; border-right:1px solid #5f6f88; background-color:#3c587f;  }
+.recent ul li {border-bottom: 1px solid #586373;}
+.recent-nick {padding:5px;  }
+.recent-msg {padding:0 5px 5px; font-size:10px; color:#748aa9;}
+
 .online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px; overflow-y:auto;}
 .tech-desc {font-size:12px;}
 .tech-desc b {display:block; font-size:14px;}
@@ -68,6 +73,14 @@ header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; tex
 <div class="wrap">
 	<header>XChat 聊天室演示</header>
 	<div class="main">
+		<div class="recent">
+			<ul>
+				<li>
+					<div class="recent-nick">德玛西亚</div>
+					<div class="recent-msg">创建一个新的定时微...</div>
+				</li>
+			</ul>
+		</div>
 		<div class="online">
 			<div>当前在线：<span id="onlineCount">..</span></div>
 			<hr/>

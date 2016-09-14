@@ -333,7 +333,7 @@ function adjustWindowSize() {
 	var winWidth = $(window).width();
 	var body = $("body");
 
-	if (winWidth > 600) {
+	if (winWidth > 650) {
 		body.removeClass("mobile");
 		mainWrap.css({"height": ($(window).height() - 36) + "px", "border-radius":"5px", "margin":"18px auto"});
 	} else {
