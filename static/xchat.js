@@ -191,6 +191,10 @@ function showOnlineList(olist) {
 	onlineList.html(html);
 }
 
+function openChat(uid) {
+	console.log("open chat " + uid);
+}
+
 var MessageEvents = {
 	"msg": function(data) {
 		var nick = getNick(data.nick);
@@ -343,8 +347,9 @@ function adjustWindowSize() {
 	//input.width(bottomArea.width() - 50 - 10);
 }
 
-adjustWindowSize();
 createConnection();
+adjustWindowSize();
+$(window).resize(adjustWindowSize);
 
 //注册昵称
 if (!nickname) {
@@ -403,7 +408,10 @@ var pongViewTimer = setInterval(function() {
 	lastActive.text(ago);
 }, 3500);
 
-$(window).resize(adjustWindowSize);
+onlineList.on("click", "li", function() {
+	var uid = $(this).data("uid");
+	openChat(uid);
+});
 
 //Page visibility state
 if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support

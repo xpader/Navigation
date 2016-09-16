@@ -59,6 +59,7 @@ header {height:50px; background-color:#4a6488; padding:10px; font-size:18px; tex
 .online {width:150px; float:right; clear:right; background-color:#3c587f; padding:8px; overflow-y:auto;}
 .tech-desc {font-size:12px;}
 .tech-desc b {display:block; font-size:14px;}
+#onlineList li {cursor:pointer;}
 #onlineList li:before {content:"♞"; margin-right:5px; vertical-align:bottom;}
 
 .tool {position:absolute; height:50px; left:0; bottom:0; width:100%; background-color:#FFF;}
